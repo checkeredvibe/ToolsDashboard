@@ -6,26 +6,27 @@
   const THEME_KEY = 'dashboard-theme';
   const PINS_KEY = 'dashboard-pins';
 
-  // --- Theme toggle (persisted) ---
+  // --- Theme toggle (persisted, driven by Bootstrap data-bs-theme) ---
+  const root = document.documentElement;
   const toggleBtn = document.getElementById('theme-toggle');
   const storedTheme = localStorage.getItem(THEME_KEY);
-  if (storedTheme) document.body.dataset.theme = storedTheme;
+  if (storedTheme) root.dataset.bsTheme = storedTheme;
 
   function syncToggleIcon() {
-    toggleBtn.textContent = document.body.dataset.theme === 'dark' ? '☀️' : '🌙';
+    toggleBtn.textContent = root.dataset.bsTheme === 'dark' ? '☀️' : '🌙';
   }
 
   toggleBtn.addEventListener('click', () => {
-    const next = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
-    document.body.dataset.theme = next;
+    const next = root.dataset.bsTheme === 'dark' ? 'light' : 'dark';
+    root.dataset.bsTheme = next;
     localStorage.setItem(THEME_KEY, next);
     syncToggleIcon();
   });
   syncToggleIcon();
 
-  // --- Featured pins (persisted, pinned tiles render large at top) ---
+  // --- Featured pins (persisted; pinned tiles span wider and sort first) ---
   const grid = document.getElementById('tile-grid');
-  const tiles = Array.from(grid.querySelectorAll('.tile'));
+  const tiles = Array.from(grid.querySelectorAll(':scope > .tile'));
 
   function getPins() {
     try { return JSON.parse(localStorage.getItem(PINS_KEY)) || []; }
@@ -39,15 +40,13 @@
   function renderPins() {
     const pins = getPins();
     tiles.forEach(tile => {
-      const id = tile.dataset.id;
-      tile.classList.toggle('featured', pins.includes(id));
-      tile.querySelector('.pin').classList.toggle('pinned', pins.includes(id));
-      grid.appendChild(tile); // re-append: pinned (featured) tiles are grouped first via CSS order
+      const pinned = pins.includes(tile.dataset.id);
+      tile.classList.toggle('featured', pinned);
+      tile.querySelector('.pin').classList.toggle('pinned', pinned);
     });
-    // Stable order: pinned tiles first, then the rest, preserving original order within groups
-    const pinned = tiles.filter(t => t.classList.contains('featured'));
+    const featured = tiles.filter(t => t.classList.contains('featured'));
     const rest = tiles.filter(t => !t.classList.contains('featured'));
-    [...pinned, ...rest].forEach(t => grid.appendChild(t));
+    [...featured, ...rest].forEach(t => grid.appendChild(t));
   }
 
   tiles.forEach(tile => {
@@ -73,8 +72,8 @@
     let visible = 0;
     tiles.forEach(tile => {
       const haystack = (
-        tile.querySelector('h2').textContent + ' ' +
-        tile.querySelector('p').textContent + ' ' +
+        tile.querySelector('.card-title').textContent + ' ' +
+        tile.querySelector('.card-text').textContent + ' ' +
         tile.dataset.keywords
       ).toLowerCase();
       const match = haystack.includes(q);

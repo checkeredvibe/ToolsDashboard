@@ -1,185 +1,106 @@
-/* Shared dashboard template styles (index + all tool pages) */
+/* Custom styles on top of Bootstrap 5: brand theme (#272974) and dashboard specifics */
 
 :root {
   --brand: #272974;
-  --radius: 8px;
+  --brand-hover: #35378f;
 }
 
-/* --- Light theme (default): white surfaces, brand accents --- */
-body[data-theme="light"],
-body:not([data-theme="dark"]) {
-  --bg: #f4f5fa;
-  --surface: #ffffff;
-  --text: #1f2340;
-  --muted: #6b6e8a;
-  --accent: var(--brand);
-  --accent-text: #ffffff;
-  --border: #d9dae8;
-  --shadow: 0 2px 10px rgba(39, 41, 116, 0.12);
-  color-scheme: light;
+[data-bs-theme="light"] {
+  --bs-primary: #272974;
+  --bs-primary-rgb: 39, 41, 116;
+  --bs-link-color: #272974;
+  --bs-link-color-rgb: 39, 41, 116;
+  --bs-link-hover-color: #35378f;
+  --bs-body-bg: #f4f5fa;
+  --bs-emphasis-color: #1f2340;
 }
 
-/* --- Dark theme: brand-based dark surface, white accents --- */
-body[data-theme="dark"] {
-  --bg: #17183d;
-  --surface: #201f52;
-  --text: #f1f2fa;
-  --muted: #a9abce;
-  --accent: #ffffff;
-  --accent-text: var(--brand);
-  --border: #35347a;
-  --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
-  color-scheme: dark;
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+[data-bs-theme="dark"] {
+  --bs-body-bg: #17183d;
+  --bs-body-bg-rgb: 23, 24, 61;
+  --bs-body-color: #f1f2fa;
+  --bs-emphasis-color: #ffffff;
+  --bs-border-color: #35347a;
+  --bs-link-color: #ffffff;
+  --bs-link-hover-color: #c7c8f0;
 }
 
 .dashboard-header {
-  padding: 1.25rem 2rem;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background-color: var(--brand);
 }
 
-.header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+[data-bs-theme="dark"] .dashboard-header {
+  background-color: #100f2e;
 }
 
-.dashboard-header h1 {
-  margin: 0;
-  font-size: 1.5rem;
-  color: var(--brand);
+.dashboard-header .navbar-brand,
+.dashboard-header .btn-outline-secondary {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.45);
 }
 
-body[data-theme="dark"] .dashboard-header h1 { color: #ffffff; }
-
-.theme-toggle {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 999px;
-  padding: 0.4rem 0.7rem;
-  font-size: 1rem;
-  cursor: pointer;
+.dashboard-header .btn-outline-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
 }
 
-.tool-search {
-  margin-top: 1rem;
-  width: min(360px, 100%);
-  padding: 0.55rem 0.8rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--bg);
-  color: var(--text);
-  font-size: 0.95rem;
+.dashboard-header .input-group-text {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #ffffff;
 }
 
-.tool-search:focus { outline: 2px solid var(--brand); }
-
-/* --- Tile grid --- */
-.tile-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
-  padding: 2rem;
-  max-width: 1100px;
-  margin: 0 auto;
+.dashboard-header .form-control {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #ffffff;
 }
 
-/* Featured tiles span double width */
-.tile.featured { grid-column: span 2; }
+.dashboard-header .form-control::placeholder {
+  color: rgba(255, 255, 255, 0.65);
+}
 
-.tile {
+/* --- Tool cards --- */
+.tool-card {
   position: relative;
-  display: block;
-  padding: 1.25rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  text-decoration: none;
-  color: var(--text);
-  box-shadow: var(--shadow);
-  transition: transform 0.15s, border-color 0.15s;
+  border-color: var(--bs-border-color);
+  transition: transform 0.15s, box-shadow 0.15s;
 }
 
-.tile:hover {
+.tool-card:hover {
   transform: translateY(-2px);
-  border-color: var(--brand);
+  box-shadow: 0 0.5rem 1rem rgba(39, 41, 116, 0.18);
 }
 
-.tile-icon { font-size: 1.6rem; }
-
-.tile h2 {
-  margin: 0.5rem 0;
-  font-size: 1.05rem;
+.tool-card .card-title {
   color: var(--brand);
 }
 
-body[data-theme="dark"] .tile h2 { color: #ffffff; }
-
-.tile p {
-  margin: 0 0 0.75rem;
-  font-size: 0.85rem;
+[data-bs-theme="dark"] .tool-card .card-title {
+  color: #ffffff;
 }
 
-.tile-keywords {
-  display: block;
-  font-size: 0.65rem;
-  color: var(--muted);
-  letter-spacing: 0.02em;
-}
-
-.pin {
+.tool-card .pin {
   position: absolute;
-  top: 0.6rem;
-  right: 0.6rem;
+  top: 0.4rem;
+  right: 0.4rem;
+  padding: 0.15rem 0.3rem;
+  font-size: 0.85rem;
+  opacity: 0.45;
   border: none;
   background: none;
-  font-size: 0.9rem;
-  cursor: pointer;
-  opacity: 0.45;
-  padding: 0.2rem;
-  border-radius: 4px;
+  z-index: 2;
 }
 
-.pin:hover { opacity: 1; }
-.pin.pinned { opacity: 1; }
+.tool-card .pin:hover { opacity: 1; }
+.tool-card .pin.pinned { opacity: 1; }
 
-.no-results {
-  text-align: center;
-  color: var(--muted);
-  padding: 2rem;
+/* Featured (pinned) tiles: span two grid columns */
+#tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
 }
 
-/* --- Shared header/footer for tool pages --- */
-.back-link {
-  display: inline-block;
-  margin-bottom: 0.75rem;
-  font-size: 0.85rem;
-  color: var(--brand);
-  text-decoration: none;
-}
-
-body[data-theme="dark"] .back-link { color: #ffffff; }
-.back-link:hover { text-decoration: underline; }
-
-.tool-content {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.dashboard-footer {
-  padding: 1rem 2rem;
-  text-align: center;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
+#tile-grid > .tile { min-width: 0; }
+#tile-grid > .tile.featured { grid-column: span 2; }

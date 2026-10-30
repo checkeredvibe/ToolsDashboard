@@ -1,25 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tool: &lt;Tool Name&gt;</title>
+  <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/css/template.css">
 </head>
 <body>
-  <header class="dashboard-header">
-    <a class="back-link" href="../index.html">&larr; Back to dashboard</a>
-    <h1>&lt;Tool Name&gt;</h1>
-  </header>
+  <nav class="navbar sticky-top dashboard-header">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-semibold" href="../index.html">&larr; Engineering Tools Dashboard</a>
+      <button id="theme-toggle" class="btn btn-sm btn-outline-secondary ms-auto" type="button" aria-label="Toggle light/dark theme">🌙</button>
+    </div>
+  </nav>
 
-  <main class="tool-content">
-    <!-- Inputs, calculation, results, visualisation -->
+  <main class="container-xl py-4">
+    <h1 class="h3 mb-1">&lt;Tool Name&gt;</h1>
+    <p class="text-body-secondary small mb-4">Short description of the tool. All inputs and results in SI units.</p>
+
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="card">
+          <div class="card-header">Inputs</div>
+          <div class="card-body">
+            <!-- Input form controls here -->
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-8">
+        <div class="card">
+          <div class="card-header">Results</div>
+          <div class="card-body">
+            <!-- Results and visualisation here -->
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
-  <footer class="dashboard-footer">
-    <p>All results in SI units.</p>
+  <footer class="dashboard-footer text-center small text-body-secondary py-3 border-top">
+    All results in SI units. Offline tool — no internet connection required.
   </footer>
 
+  <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/template.js"></script>
   <script src="../assets/js/tools.js"></script>
 </body>
