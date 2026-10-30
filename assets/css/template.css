@@ -80,20 +80,7 @@
   color: #ffffff;
 }
 
-.tool-card .pin {
-  position: absolute;
-  top: 0.4rem;
-  right: 0.4rem;
-  padding: 0.15rem 0.3rem;
-  font-size: 0.85rem;
-  opacity: 0.45;
-  border: none;
-  background: none;
-  z-index: 2;
-}
 
-.tool-card .pin:hover { opacity: 1; }
-.tool-card .pin.pinned { opacity: 1; }
 
 /* --- Tile grid: square tiles ---
    Base size 288px (240px + 20%), tiles kept square via aspect-ratio. */
@@ -104,7 +91,6 @@
 }
 
 #tile-grid > .tile { min-width: 0; }
-#tile-grid > .tile.featured { grid-column: span 2; }
 
 #tile-grid > .tile .card {
   aspect-ratio: 1 / 1;
@@ -112,8 +98,4 @@
 
 #tile-grid > .tile .card-body {
   overflow: hidden;
-}
-
-#tile-grid > .tile.featured .card {
-  aspect-ratio: auto;
 }
