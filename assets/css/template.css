@@ -1,0 +1,75 @@
+/* Shared dashboard template styles (index + all tool pages) */
+
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --text: #1f2933;
+  --accent: #2563eb;
+  --border: #d5dbe1;
+  --radius: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.dashboard-header {
+  padding: 1.5rem 2rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  padding: 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.tile {
+  display: block;
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.tile:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.tile h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+
+.tile p {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.dashboard-footer {
+  padding: 1rem 2rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #616e7c;
+}
