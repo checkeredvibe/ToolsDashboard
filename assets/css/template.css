@@ -1,17 +1,38 @@
 /* Shared dashboard template styles (index + all tool pages) */
 
 :root {
-  --bg: #f4f6f8;
-  --surface: #ffffff;
-  --text: #1f2933;
-  --accent: #2563eb;
-  --border: #d5dbe1;
+  --brand: #272974;
   --radius: 8px;
 }
 
-* {
-  box-sizing: border-box;
+/* --- Light theme (default): white surfaces, brand accents --- */
+body[data-theme="light"],
+body:not([data-theme="dark"]) {
+  --bg: #f4f5fa;
+  --surface: #ffffff;
+  --text: #1f2340;
+  --muted: #6b6e8a;
+  --accent: var(--brand);
+  --accent-text: #ffffff;
+  --border: #d9dae8;
+  --shadow: 0 2px 10px rgba(39, 41, 116, 0.12);
+  color-scheme: light;
 }
+
+/* --- Dark theme: brand-based dark surface, white accents --- */
+body[data-theme="dark"] {
+  --bg: #17183d;
+  --surface: #201f52;
+  --text: #f1f2fa;
+  --muted: #a9abce;
+  --accent: #ffffff;
+  --accent-text: var(--brand);
+  --border: #35347a;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -21,16 +42,49 @@ body {
 }
 
 .dashboard-header {
-  padding: 1.5rem 2rem;
+  padding: 1.25rem 2rem;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .dashboard-header h1 {
   margin: 0;
   font-size: 1.5rem;
+  color: var(--brand);
 }
 
+body[data-theme="dark"] .dashboard-header h1 { color: #ffffff; }
+
+.theme-toggle {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 0.4rem 0.7rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.tool-search {
+  margin-top: 1rem;
+  width: min(360px, 100%);
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.tool-search:focus { outline: 2px solid var(--brand); }
+
+/* --- Tile grid --- */
 .tile-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -40,7 +94,11 @@ body {
   margin: 0 auto;
 }
 
+/* Featured tiles span double width */
+.tile.featured { grid-column: span 2; }
+
 .tile {
+  position: relative;
   display: block;
   padding: 1.25rem;
   background: var(--surface);
@@ -48,28 +106,80 @@ body {
   border-radius: var(--radius);
   text-decoration: none;
   color: var(--text);
-  transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s, border-color 0.15s;
 }
 
 .tile:hover {
-  border-color: var(--accent);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  border-color: var(--brand);
 }
+
+.tile-icon { font-size: 1.6rem; }
 
 .tile h2 {
-  margin: 0 0 0.5rem;
+  margin: 0.5rem 0;
   font-size: 1.05rem;
-  color: var(--accent);
+  color: var(--brand);
 }
 
+body[data-theme="dark"] .tile h2 { color: #ffffff; }
+
 .tile p {
-  margin: 0;
+  margin: 0 0 0.75rem;
   font-size: 0.85rem;
+}
+
+.tile-keywords {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.pin {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  border: none;
+  background: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  opacity: 0.45;
+  padding: 0.2rem;
+  border-radius: 4px;
+}
+
+.pin:hover { opacity: 1; }
+.pin.pinned { opacity: 1; }
+
+.no-results {
+  text-align: center;
+  color: var(--muted);
+  padding: 2rem;
+}
+
+/* --- Shared header/footer for tool pages --- */
+.back-link {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--brand);
+  text-decoration: none;
+}
+
+body[data-theme="dark"] .back-link { color: #ffffff; }
+.back-link:hover { text-decoration: underline; }
+
+.tool-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
 .dashboard-footer {
   padding: 1rem 2rem;
   text-align: center;
   font-size: 0.8rem;
-  color: #616e7c;
+  color: var(--muted);
 }

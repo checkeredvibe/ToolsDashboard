@@ -6,19 +6,61 @@
   <title>Engineering Tools Dashboard</title>
   <link rel="stylesheet" href="assets/css/template.css">
 </head>
-<body>
+<body data-theme="light">
   <header class="dashboard-header">
-    <h1>Engineering Tools Dashboard</h1>
+    <div class="header-row">
+      <h1>Engineering Tools Dashboard</h1>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark theme">🌙</button>
+    </div>
+    <input id="tool-search" class="tool-search" type="search"
+           placeholder="Filter tools…" aria-label="Filter tools">
   </header>
 
-  <main class="tile-grid">
-    <!-- Tool tiles: each links to a page in tools/ -->
+  <main class="tile-grid" id="tile-grid">
+    <a class="tile" href="tools/_template.html" data-keywords="lorem ipsum dolor sit amet consectetur"
+       data-id="placeholder-1">
+      <button class="pin" type="button" aria-label="Pin tool" title="Pin/Unpin tool">📌</button>
+      <span class="tile-icon">🛠️</span>
+      <h2>Lorem Ipsum Tool</h2>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+      <span class="tile-keywords">lorem · ipsum · dolor</span>
+    </a>
+
+    <a class="tile" href="tools/_template.html" data-keywords="sed do eiusmod tempor incididunt ut labore"
+       data-id="placeholder-2">
+      <button class="pin" type="button" aria-label="Pin tool" title="Pin/Unpin tool">📌</button>
+      <span class="tile-icon">📐</span>
+      <h2>Dolor Sit Tool</h2>
+      <p>Sed do eiusmod tempor incididunt ut labore et dolore.</p>
+      <span class="tile-keywords">sed · eiusmod · tempor</span>
+    </a>
+
+    <a class="tile" href="tools/_template.html" data-keywords="magna aliqua enim ad minim veniam quis nostrud"
+       data-id="placeholder-3">
+      <button class="pin" type="button" aria-label="Pin tool" title="Pin/Unpin tool">📌</button>
+      <span class="tile-icon">📊</span>
+      <h2>Consectetur Tool</h2>
+      <p>Magna aliqua, enim ad minim veniam quis nostrud.</p>
+      <span class="tile-keywords">magna · aliqua · veniam</span>
+    </a>
+
+    <a class="tile" href="tools/_template.html" data-keywords="exercitation ullamco laboris nisi ut aliquip ex ea"
+       data-id="placeholder-4">
+      <button class="pin" type="button" aria-label="Pin tool" title="Pin/Unpin tool">📌</button>
+      <span class="tile-icon">⚙️</span>
+      <h2>Ullamco Tool</h2>
+      <p>Exercitation ullamco laboris nisi ut aliquip ex ea commodo.</p>
+      <span class="tile-keywords">exercitation · laboris · nisi</span>
+    </a>
   </main>
+
+  <p id="no-results" class="no-results" hidden>No tools match your filter.</p>
 
   <footer class="dashboard-footer">
     <p>All results in SI units.</p>
   </footer>
 
   <script src="assets/js/template.js"></script>
+  <script src="assets/js/dashboard.js"></script>
 </body>
 </html>
