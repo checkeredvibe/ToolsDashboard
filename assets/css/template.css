@@ -39,6 +39,11 @@
   border-color: rgba(255, 255, 255, 0.45);
 }
 
+.navbar-logo {
+  height: 2.25rem;
+  width: auto;
+}
+
 .dashboard-header .btn-outline-secondary:hover {
   background-color: rgba(255, 255, 255, 0.15);
   color: #ffffff;
