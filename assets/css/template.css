@@ -41,7 +41,8 @@
 
 .navbar-logo {
   height: 2.25rem;
-  width: auto;
+  width: 2.25rem;
+  border-radius: 50%;
 }
 
 .dashboard-header .btn-outline-secondary:hover {
