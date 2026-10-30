@@ -2,19 +2,46 @@
 
 Offline HTML dashboard providing engineering calculation and visualisation tools.
 All results use SI units. No external network resources are used — open
-`index.html` directly in a browser.
+`index.html` directly in a browser, or serve it via GitHub Pages.
 
-## Structure
+## Architecture
 
-- `index.html` — main dashboard with clickable tiles linking to each tool
-- `tools/` — one standalone HTML file per tool
-- `assets/css/template.css` — shared dashboard template styles
-- `assets/js/template.js` — shared layout/header/footer logic
-- `assets/js/tools.js` — shared SI-unit and calculation helpers
-- `assets/img/` — self-hosted icons for tiles
+- Fully offline, static HTML — no CDN links, no build step, no server required.
+- Bootstrap 5.3.3 is self-hosted in `assets/vendor/bootstrap/` (plain CSS + JS
+  files, nothing compiled).
+- `index.html` — main dashboard with a live-filtered grid of tool tiles.
+- `tools/<tool-name>.html` — one standalone HTML file per tool.
+- `tools/_template.html` — copy-paste starter for new tool pages.
+- `assets/css/template.css` — shared styles on top of Bootstrap (brand theme,
+  tile grid, navbar).
+- `assets/js/template.js` — shared logic: theme toggle (the only owner of this
+  behavior).
+- `assets/js/dashboard.js` — index-page logic: live search filter.
+- `assets/js/tools.js` — shared SI-unit helpers (`SI.format`, `SI.parse`).
+- `assets/img/` — self-hosted images (navbar logo).
 
-## Adding a new tool
+## Design decisions
 
-1. Copy an existing page in `tools/` (or the template stub) to `<tool-name>.html`.
-2. Link the shared stylesheet and scripts from `../assets/...`.
-3. Add a tile to `index.html` linking to `tools/<tool-name>.html`.
+- Brand theme: white + `#272974`.
+- Light/dark mode via Bootstrap's `data-bs-theme` attribute on `<html>`,
+  persisted in `localStorage` (key `dashboard-theme`).
+- Theme toggle logic lives only in `template.js` — one owner per behavior;
+  attaching the same listener from multiple scripts breaks the toggle.
+- Tiles: uniform grid of square cards (288px minimum), icon + title +
+  one-line description + small keywords. No featured/pinning.
+- Tile `data-keywords` feed the live search filter — keep them matching the
+  terms a user would actually type.
+- Footer: "This dashboard is partially created by Vibe-coding. Make sure you
+  validate your calculations."
+
+## New-tool recipe
+
+1. Copy `tools/_template.html` to `tools/<tool-name>.html`.
+2. Update the `<title>`, heading, and description; keep the shared
+   `../assets/...` relative links (Bootstrap, template CSS/JS, tools.js).
+3. Build the tool inside the Inputs/Results card layout.
+4. Use the `SI.format` / `SI.parse` helpers from `tools.js` for all values;
+   all inputs and results in SI units.
+5. Add a tile to `index.html` (same markup as the existing tiles) linking to
+   `tools/<tool-name>.html`, including descriptive `data-keywords`.
+6. Test offline by opening `index.html` directly in a browser.
