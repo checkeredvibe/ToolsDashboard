@@ -12,7 +12,6 @@
   const sortSelect = document.getElementById('tool-sort');
   const noResults = document.getElementById('no-results');
   const resultCount = document.getElementById('result-count');
-  const toolCount = document.getElementById('tool-count');
   const chipsBox = document.getElementById('category-chips');
 
   const state = { q: '', cat: 'all', sort: 'default' };
@@ -156,7 +155,6 @@
   readHash();
   searchInput.value = state.q;
   sortSelect.value = state.sort;
-  toolCount.textContent = tiles.length + (tiles.length === 1 ? ' tool available' : ' tools available');
   renderChips();
   applySort();
   applyFilters();
