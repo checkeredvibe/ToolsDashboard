@@ -1,28 +1,10 @@
-// Index dashboard logic: theme toggle, live filter, featured pins.
+// Index dashboard logic: live filter, featured pins.
+// Theme toggle is handled once by template.js, which loads first.
 
 (function () {
   'use strict';
 
-  const THEME_KEY = 'dashboard-theme';
   const PINS_KEY = 'dashboard-pins';
-
-  // --- Theme toggle (persisted, driven by Bootstrap data-bs-theme) ---
-  const root = document.documentElement;
-  const toggleBtn = document.getElementById('theme-toggle');
-  const storedTheme = localStorage.getItem(THEME_KEY);
-  if (storedTheme) root.dataset.bsTheme = storedTheme;
-
-  function syncToggleIcon() {
-    toggleBtn.textContent = root.dataset.bsTheme === 'dark' ? '☀️' : '🌙';
-  }
-
-  toggleBtn.addEventListener('click', () => {
-    const next = root.dataset.bsTheme === 'dark' ? 'light' : 'dark';
-    root.dataset.bsTheme = next;
-    localStorage.setItem(THEME_KEY, next);
-    syncToggleIcon();
-  });
-  syncToggleIcon();
 
   // --- Featured pins (persisted; pinned tiles span wider and sort first) ---
   const grid = document.getElementById('tile-grid');

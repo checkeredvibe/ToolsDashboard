@@ -95,12 +95,25 @@
 .tool-card .pin:hover { opacity: 1; }
 .tool-card .pin.pinned { opacity: 1; }
 
-/* Featured (pinned) tiles: span two grid columns */
+/* --- Tile grid: square tiles ---
+   Base size 288px (240px + 20%), tiles kept square via aspect-ratio. */
 #tile-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
   gap: 1rem;
 }
 
 #tile-grid > .tile { min-width: 0; }
 #tile-grid > .tile.featured { grid-column: span 2; }
+
+#tile-grid > .tile .card {
+  aspect-ratio: 1 / 1;
+}
+
+#tile-grid > .tile .card-body {
+  overflow: hidden;
+}
+
+#tile-grid > .tile.featured .card {
+  aspect-ratio: auto;
+}
