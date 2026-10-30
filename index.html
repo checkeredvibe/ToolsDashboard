@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Offline engineering tools dashboard: calculation and visualisation tools with results in SI units.">
+  <link rel="icon" type="image/png" href="assets/img/logo.png">
   <title>Engineering Tools Dashboard</title>
   <link rel="stylesheet" href="assets/vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="assets/css/template.css">
@@ -15,58 +17,76 @@
         <span class="fw-semibold">Engineering Tools Dashboard</span>
       </a>
       <div class="d-flex align-items-center gap-2 ms-auto">
-        <div class="input-group input-group-sm" style="max-width: 280px;">
-          <span class="input-group-text">🔎</span>
-          <input id="tool-search" type="search" class="form-control" placeholder="Filter tools…" aria-label="Filter tools">
+        <div class="input-group input-group-sm" role="search" style="max-width: 280px;">
+          <span class="input-group-text">&#128270;</span>
+          <input id="tool-search" type="search" class="form-control" placeholder="Filter tools&hellip;" aria-label="Filter tools">
+          <button id="search-clear" class="btn btn-sm btn-outline-light d-none" type="button" aria-label="Clear search">&times;</button>
         </div>
-        <button id="theme-toggle" class="btn btn-sm btn-outline-secondary" type="button" aria-label="Toggle light/dark theme">🌙</button>
+        <label class="visually-hidden" for="tool-sort">Sort tools</label>
+        <select id="tool-sort" class="form-select form-select-sm dashboard-sort" aria-label="Sort tools">
+          <option value="default" selected>Default order</option>
+          <option value="az">Name A&ndash;Z</option>
+          <option value="recent">Recently added</option>
+        </select>
+        <button id="theme-toggle" class="btn btn-sm btn-outline-secondary" type="button" aria-label="Toggle light/dark theme">&#127769;</button>
       </div>
     </div>
   </nav>
 
   <main class="container-xl py-4">
+    <section class="dashboard-hero mb-4" aria-label="Overview">
+      <h1 class="h4 mb-1">Engineering tools, offline &amp; in SI units</h1>
+      <p class="text-body-secondary small mb-0">
+        <span id="tool-count"></span> &middot; Type in the search box above to filter, or pick a category below. Press <kbd>Esc</kbd> to clear the search.
+      </p>
+    </section>
+
+    <div id="category-chips" class="d-flex flex-wrap gap-2 mb-3" role="group" aria-label="Filter by category"></div>
+
+    <p id="result-count" class="text-body-secondary small" aria-live="polite"></p>
+
     <div class="tile-grid" id="tile-grid">
-      <div class="tile" data-id="placeholder-1" data-keywords="lorem ipsum dolor sit amet consectetur">
+      <div class="tile" data-id="placeholder-1" data-category="mechanics" data-updated="2025-01-10" data-keywords="lorem ipsum dolor sit amet consectetur">
         <a href="tools/_template.html" class="card tool-card h-100 text-decoration-none">
           <div class="card-body">
-            <div class="tile-icon fs-3">🛠️</div>
+            <div class="tile-icon fs-3">&#128736;&#65039;</div>
             <h2 class="h6 card-title mb-1">Lorem Ipsum Tool</h2>
             <p class="card-text small">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
           </div>
-          <div class="card-footer text-body-secondary"><small><small>lorem · ipsum · dolor</small></small></div>
+          <div class="card-footer text-body-secondary"><small><small>lorem &middot; ipsum &middot; dolor</small></small></div>
         </a>
       </div>
 
-      <div class="tile" data-id="placeholder-2" data-keywords="sed do eiusmod tempor incididunt ut labore">
+      <div class="tile" data-id="placeholder-2" data-category="thermodynamics" data-updated="2025-02-14" data-keywords="sed do eiusmod tempor incididunt ut labore">
         <a href="tools/_template.html" class="card tool-card h-100 text-decoration-none">
           <div class="card-body">
-            <div class="tile-icon fs-3">📐</div>
+            <div class="tile-icon fs-3">&#128208;</div>
             <h2 class="h6 card-title mb-1">Dolor Sit Tool</h2>
             <p class="card-text small">Sed do eiusmod tempor incididunt ut labore et dolore.</p>
           </div>
-          <div class="card-footer text-body-secondary"><small><small>sed · eiusmod · tempor</small></small></div>
+          <div class="card-footer text-body-secondary"><small><small>sed &middot; eiusmod &middot; tempor</small></small></div>
         </a>
       </div>
 
-      <div class="tile" data-id="placeholder-3" data-keywords="magna aliqua enim ad minim veniam quis nostrud">
+      <div class="tile" data-id="placeholder-3" data-category="electrics" data-updated="2025-03-21" data-keywords="magna aliqua enim ad minim veniam quis nostrud">
         <a href="tools/_template.html" class="card tool-card h-100 text-decoration-none">
           <div class="card-body">
-            <div class="tile-icon fs-3">📊</div>
+            <div class="tile-icon fs-3">&#128202;</div>
             <h2 class="h6 card-title mb-1">Consectetur Tool</h2>
             <p class="card-text small">Magna aliqua, enim ad minim veniam quis nostrud.</p>
           </div>
-          <div class="card-footer text-body-secondary"><small><small>magna · aliqua · veniam</small></small></div>
+          <div class="card-footer text-body-secondary"><small><small>magna &middot; aliqua &middot; veniam</small></small></div>
         </a>
       </div>
 
-      <div class="tile" data-id="placeholder-4" data-keywords="exercitation ullamco laboris nisi ut aliquip ex ea">
+      <div class="tile" data-id="placeholder-4" data-category="fluids" data-updated="2025-04-05" data-keywords="exercitation ullamco laboris nisi ut aliquip ex ea">
         <a href="tools/_template.html" class="card tool-card h-100 text-decoration-none">
           <div class="card-body">
-            <div class="tile-icon fs-3">⚙️</div>
+            <div class="tile-icon fs-3">&#9881;&#65039;</div>
             <h2 class="h6 card-title mb-1">Ullamco Tool</h2>
             <p class="card-text small">Exercitation ullamco laboris nisi ut aliquip ex ea commodo.</p>
           </div>
-          <div class="card-footer text-body-secondary"><small><small>exercitation · laboris · nisi</small></small></div>
+          <div class="card-footer text-body-secondary"><small><small>exercitation &middot; laboris &middot; nisi</small></small></div>
         </a>
       </div>
     </div>

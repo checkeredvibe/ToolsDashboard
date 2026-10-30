@@ -65,6 +65,86 @@
   color: rgba(255, 255, 255, 0.65);
 }
 
+.dashboard-header .form-control:focus {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: #ffffff;
+  color: #ffffff;
+  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+}
+
+.dashboard-sort {
+  width: auto;
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #ffffff;
+}
+
+.dashboard-sort:focus {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: #ffffff;
+  color: #ffffff;
+  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+}
+
+.dashboard-header .btn-outline-light {
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #ffffff;
+}
+
+.dashboard-header .btn-outline-light:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+/* --- Category chips --- */
+.chip {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 2rem;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+}
+
+.chip:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.chip-active,
+.chip-active:hover {
+  background-color: var(--brand);
+  border-color: var(--brand);
+  color: #ffffff;
+}
+
+[data-bs-theme="dark"] .chip-active,
+[data-bs-theme="dark"] .chip-active:hover {
+  background-color: #c7c8f0;
+  border-color: #c7c8f0;
+  color: #17183d;
+}
+
+/* --- Search term highlight --- */
+.tool-card mark {
+  background-color: #ffe58a;
+  color: inherit;
+  padding: 0;
+}
+
+[data-bs-theme="dark"] .tool-card mark {
+  background-color: #8a6d1a;
+  color: #ffffff;
+}
+
+/* --- Focus visibility for tiles --- */
+.tool-card:focus-visible {
+  outline: 3px solid var(--brand);
+  outline-offset: 2px;
+}
+
+[data-bs-theme="dark"] .tool-card:focus-visible {
+  outline-color: #c7c8f0;
+}
+
 /* --- Tool cards --- */
 .tool-card {
   position: relative;
@@ -103,4 +183,9 @@
 
 #tile-grid > .tile .card-body {
   overflow: hidden;
+}
+
+/* --- Footer contrast in dark mode --- */
+[data-bs-theme="dark"] .dashboard-footer {
+  color: #c7c8f0;
 }

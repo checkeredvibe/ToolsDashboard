@@ -9,14 +9,19 @@ All results use SI units. No external network resources are used — open
 - Fully offline, static HTML — no CDN links, no build step, no server required.
 - Bootstrap 5.3.3 is self-hosted in `assets/vendor/bootstrap/` (plain CSS + JS
   files, nothing compiled).
-- `index.html` — main dashboard with a live-filtered grid of tool tiles.
+- `index.html` — main dashboard with a live-filtered, sortable grid of tool tiles.
+  Features: match highlighting, category filter chips, result counter, clear
+  button + `Esc` to reset the search, sort (default / A–Z / recently added via
+  `data-updated`), and shareable filter state in the URL hash
+  (`index.html#q=...&cat=...&sort=...`).
 - `tools/<tool-name>.html` — one standalone HTML file per tool.
 - `tools/_template.html` — copy-paste starter for new tool pages.
 - `assets/css/template.css` — shared styles on top of Bootstrap (brand theme,
   tile grid, navbar).
 - `assets/js/template.js` — shared logic: theme toggle (the only owner of this
   behavior).
-- `assets/js/dashboard.js` — index-page logic: live search filter.
+- `assets/js/dashboard.js` — index-page logic: live search filter with
+  highlighting, category chips, sorting, result counter, URL-hash state.
 - `assets/js/tools.js` — shared SI-unit helpers (`SI.format`, `SI.parse`).
 - `assets/img/` — self-hosted images (navbar logo).
 
@@ -30,7 +35,9 @@ All results use SI units. No external network resources are used — open
 - Tiles: uniform grid of square cards (288px minimum), icon + title +
   one-line description + small keywords. No featured/pinning.
 - Tile `data-keywords` feed the live search filter — keep them matching the
-  terms a user would actually type.
+  terms a user would actually type (at least five keywords per tool).
+- Tile `data-category` drives the category filter chips; `data-updated`
+  (ISO date) drives the "Recently added" sort.
 - Footer: "This dashboard is partially created by Vibe-coding. Make sure you
   validate your calculations."
 
@@ -43,5 +50,6 @@ All results use SI units. No external network resources are used — open
 4. Use the `SI.format` / `SI.parse` helpers from `tools.js` for all values;
    all inputs and results in SI units.
 5. Add a tile to `index.html` (same markup as the existing tiles) linking to
-   `tools/<tool-name>.html`, including descriptive `data-keywords`.
+   `tools/<tool-name>.html`, including descriptive `data-keywords`, a
+   `data-category`, and a `data-updated` date.
 6. Test offline by opening `index.html` directly in a browser.
