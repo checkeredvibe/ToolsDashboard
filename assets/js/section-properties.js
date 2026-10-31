@@ -31,11 +31,7 @@
     },
     bulb: {
       label: 'Bulb profile',
-      dims: [
-        { key: 'h', label: 'Height h', def: 120, min: DIM_MIN, max: DIM_MAX },
-        { key: 't', label: 'Web thickness t', def: 6, min: 1, max: 30 },
-        { key: 'rb', label: 'Bulb radius r_b', def: 8, min: DIM_MIN, max: DIM_MAX }
-      ]
+      predefined: true
     },
     'round-tube': {
       label: 'Round tube',
@@ -64,6 +60,11 @@
   const els = {
     select: $('in-section'),
     dimBox: $('dim-controls'),
+    bulbSelect: $('in-bulb-profile'),
+    cardBulb: $('card-bulb-select'),
+    cardDims: $('card-dims'),
+    cardPlot: $('card-plot'),
+    cardDrawingOptions: $('card-drawing-options'),
     centroidToggle: $('in-centroid'),
     out: {
       area: $('out-area'), yc: $('out-yc'), ix: $('out-ix'),
@@ -88,7 +89,18 @@
   function buildDimControls(sectionKey) {
     els.dimBox.innerHTML = '';
     dimRows = [];
-    SECTIONS[sectionKey].dims.forEach((d) => {
+    const spec = SECTIONS[sectionKey];
+    const isBulb = !!spec.predefined;
+    els.cardBulb.hidden = !isBulb;
+    els.cardDims.hidden = isBulb;
+    els.cardPlot.hidden = isBulb;
+    els.cardDrawingOptions.hidden = isBulb;
+    if (isBulb) {
+      els.bulbSelect.innerHTML = BULB_PROFILES.map((p, i) =>
+        '<option value="' + i + '"' + (p.name === 'HP 120x6' ? ' selected' : '') + '>' + p.name + '</option>').join('');
+      return;
+    }
+    spec.dims.forEach((d) => {
       const dmin = d.min !== undefined ? d.min : DIM_MIN;
       const dmax = d.max !== undefined ? d.max : DIM_MAX;
       const row = document.createElement('div');
@@ -116,7 +128,11 @@
     });
   }
 
-  function readDims() {
+  function readDims(key) {
+    if (key === 'bulb') {
+      const p = BULB_PROFILES[Number(els.bulbSelect.value) || 0];
+      return { h: p.h, t: p.t, rb: p.rb };
+    }
     const o = {};
     dimRows.forEach(r => { o[r.key] = SI.parse(r.num.value); });
     return o;
@@ -303,9 +319,20 @@
 
   function renderTable(key, d, res) {
     const num = (v) => String(Number(v.toPrecision(4)));
+    const spec = SECTIONS[key];
+    const dimRowsOut = spec.predefined
+      ? [
+          ['Height h', num(d.h), 'mm'],
+          ['Web thickness t', num(d.t), 'mm'],
+          ['Bulb radius r_b', num(d.rb), 'mm']
+        ]
+      : spec.dims.map(dd => [dd.label, num(d[dd.key]), 'mm']);
+    const sectionName = spec.predefined
+      ? spec.label + ' — ' + BULB_PROFILES[Number(els.bulbSelect.value) || 0].name
+      : spec.label;
     const rows = [
-      ['Section', SECTIONS[key].label, '—'],
-      ...SECTIONS[key].dims.map(dd => [dd.label, num(d[dd.key]), 'mm']),
+      ['Section', sectionName, '—'],
+      ...dimRowsOut,
       ['Area A', num(res.A), 'mm² = ' + num(res.A * 1e-6) + ' m²'],
       ['Centroid ȳ', num(res.yc), 'mm = ' + num(res.yc * 1e-3) + ' m'],
       ['I_x (strong)', num(res.Ix), 'mm⁴ = ' + num(res.Ix * 1e-12) + ' m⁴'],
@@ -319,7 +346,7 @@
 
   function updateLight() {
     const key = els.select.value;
-    const d = readDims();
+    const d = readDims(key);
     if (!valid(key, d)) { els.tableBody.innerHTML = ''; return; }
     const res = compute(key, d);
     renderNumbers(res);
@@ -328,7 +355,7 @@
 
   function update() {
     const key = els.select.value;
-    const d = readDims();
+    const d = readDims(key);
     if (!valid(key, d)) {
       Object.values(els.out).forEach(el => { el.textContent = '—'; });
       Plotly.purge(els.plot);
@@ -342,6 +369,7 @@
   }
 
   els.select.addEventListener('change', () => { buildDimControls(els.select.value); update(); });
+  els.bulbSelect.addEventListener('change', update);
   els.centroidToggle.addEventListener('change', update);
 
   new MutationObserver(() => { if (els.plot.data) update(); })

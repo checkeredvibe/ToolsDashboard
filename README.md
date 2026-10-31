@@ -52,6 +52,9 @@ All results use SI units. No external network resources are used — open
 - `assets/img/` — self-hosted images (navbar logo).
 - `assets/data/example.csv` — placeholder CSV auto-loaded by the template's
   CSV preview card (projectile trajectory sample data, SI units).
+- `assets/data/bulb-profiles.js` — predefined bulb flats HP 60x4–HP 430x20
+  (EN 10067 / DIN 1025-2 dimension table, ArcelorMittal publication), used by
+  the Section Properties tool's bulb-profile dropdown.
 
 ## Design decisions
 
