@@ -9,13 +9,34 @@ All results use SI units. No external network resources are used — open
 - Fully offline, static HTML — no CDN links, no build step, no server required.
 - Bootstrap 5.3.3 is self-hosted in `assets/vendor/bootstrap/` (plain CSS + JS
   files, nothing compiled).
+- Plotly.js 2.35.2 is self-hosted in `assets/vendor/plotly/` for interactive,
+  animated offline plots. Bundles included: `plotly-cartesian.min.js`
+  (line/scatter/bar charts) and `plotly-gl3d.min.js` (3D surface/scatter plots,
+  WebGL). Both ship with their license files; add mapbox/geo bundles only if a
+  tool needs maps.
 - `index.html` — main dashboard with a live-filtered, sortable grid of tool tiles.
   Features: match highlighting, category filter chips, result counter, clear
   button + `Esc` to reset the search, sort (default / A–Z / recently added via
   `data-updated`), and shareable filter state in the URL hash
   (`index.html#q=...&cat=...&sort=...`).
 - `tools/<tool-name>.html` — one standalone HTML file per tool.
-- `tools/_template.html` — copy-paste starter for new tool pages.
+- `tools/template.html` — general copy-paste starter for new tool pages. It
+  contains one example of every supported field type, wired by
+  `assets/js/template-tool.js` (demo model `y = A·sin(2πfx)`):
+  - inputs: text, number, single slider, two-sided slider (slide or type
+    min/max, both stay in sync, step 0.1), on/off switch, dropdown select,
+    multi-select checkboxes, date/time picker, color picker, single-choice
+    radio group, local .csv file upload (FileReader, never sent anywhere);
+    a bundled placeholder `assets/data/example.csv` is auto-loaded into the
+    CSV preview on page load (over Pages/HTTP; via file:// fetch is blocked,
+    so upload manually there)
+  - outputs: number readout, interactive 2D line plot, scatter plot, 3D
+    surface plot (gl3d bundle; all with hover + PNG download via the built-in
+    modebar), table, image snapshot (`Plotly.toImage`), CSV preview table —
+    all local, no network
+  - plots redraw only on slider release (`change` event); while dragging,
+    only the cheap number/table update runs (`input` event) to avoid lag
+  - bottom row: equations used + sources
 - `assets/css/template.css` — shared styles on top of Bootstrap (brand theme,
   tile grid, navbar).
 - `assets/js/template.js` — shared logic: theme toggle (the only owner of this
@@ -23,7 +44,17 @@ All results use SI units. No external network resources are used — open
 - `assets/js/dashboard.js` — index-page logic: live search filter with
   highlighting, category chips, sorting, result counter, URL-hash state.
 - `assets/js/tools.js` — shared SI-unit helpers (`SI.format`, `SI.parse`).
+- `assets/js/<tool-name>.js` — per-tool logic (calculations + Plotly plots).
+- `tools/<tool-name>.html` — tool pages use the `.tool-layout` grid from
+  `template.css`: 30% inputs on the left, 70% results (values, interactive
+  plots, tables) on the right, and a full-width bottom row with the formulas
+  used and their sources.
 - `assets/img/` — self-hosted images (navbar logo).
+- `assets/data/example.csv` — placeholder CSV auto-loaded by the template's
+  CSV preview card (projectile trajectory sample data, SI units).
+- `assets/data/bulb-profiles.js` — predefined bulb flats HP 60x4–HP 430x20
+  (EN 10067 / DIN 1025-2 dimension table, ArcelorMittal publication), used by
+  the Section Properties tool's bulb-profile dropdown.
 
 ## Design decisions
 
@@ -38,18 +69,54 @@ All results use SI units. No external network resources are used — open
   terms a user would actually type (at least five keywords per tool).
 - Tile `data-category` drives the category filter chips; `data-updated`
   (ISO date) drives the "Recently added" sort.
-- Footer: "This dashboard is partially created by Vibe-coding. Make sure you
-  validate your calculations."
+- Footer: "TG2026 - Make sure you validate your calculations before using them
+  for professional purposes." plus a bottom-left "Last updated on: <date>
+  <HH:MM:SS>" timestamp, filled automatically by `template.js` from
+  `document.lastModified` (served file's last-modified time on Pages, file
+  mtime via `file://`). Keep the `<span id="last-updated">` in every page
+  footer.
+- GitHub Pages never serves files/directories starting with `_` (reserved for
+  Jekyll), even in legacy branch mode — so the tool template is
+  `tools/template.html` + `assets/js/template-tool.js`, not `_template.*`.
 
 ## New-tool recipe
 
-1. Copy `tools/_template.html` to `tools/<tool-name>.html`.
-2. Update the `<title>`, heading, and description; keep the shared
+1. **Ask the engineer first — in two rounds, not all at once.** Do not dump
+   every question in one go; ask in stages and use the answers before asking
+   the next round:
+   - **Round 1 — scope and sources only:** ask **what the tool should do**
+     (its purpose and the physics/engineering problem it solves) and whether
+     the engineer has **specific references** (textbooks, standards, papers,
+     norms) that must be used for the calculations — these go into the
+     bottom "Calculations used & sources" card. Process the answers (pick the
+     relevant equations/sources) before continuing.
+   - **Round 2 — parameters and fields:** only then ask which **input
+     parameters** the tool needs (names, SI units, min/max), the **default
+     values** for every input parameter (and why), which **outputs** it must
+     show (numbers, plots, tables, images, …), and which **field types** to
+     use for each input and output (text, number, single slider, two-sided
+     slider, toggle, dropdown, checkboxes, date/time, color, radio, CSV
+     upload — and number/line plot/scatter/3D plot/table/image/CSV preview
+     on the output side), as listed in `tools/template.html`.
+   Do not guess these — the engineer decides.
+2. Copy `tools/template.html` to `tools/<tool-name>.html` (the template is
+   already wired with one example of every field type).
+3. Update the `<title>`, heading, and description; keep the shared
    `../assets/...` relative links (Bootstrap, template CSS/JS, tools.js).
-3. Build the tool inside the Inputs/Results card layout.
-4. Use the `SI.format` / `SI.parse` helpers from `tools.js` for all values;
-   all inputs and results in SI units.
-5. Add a tile to `index.html` (same markup as the existing tiles) linking to
-   `tools/<tool-name>.html`, including descriptive `data-keywords`, a
-   `data-category`, and a `data-updated` date.
-6. Test offline by opening `index.html` directly in a browser.
+4. Build your tool inside the `.tool-layout` grid: "Input" header + input
+   cards (left, 30%), "Output" header + output cards with plots/tables
+   (right, 70%), and a `.tool-bottom` card (100% width) listing the
+   equations used and their sources.
+5. Slider inputs must stay in sync with a direct number/text entry for the
+   same value (type exactly, or slide); plots redraw on slider release
+   (`change`), cheap outputs update live (`input`).
+6. Use the `SI.format` / `SI.parse` helpers from `tools.js` for all values;
+   all inputs and results in SI units. Load
+   `../assets/vendor/plotly/plotly-cartesian.min.js` for 2D plots and/or
+   `../assets/vendor/plotly/plotly-gl3d.min.js` for 3D plots.
+7. Copy `assets/js/template-tool.js` to `assets/js/<tool-name>.js` and replace
+   the demo model with your calculations.
+8. Add a tile to `index.html` (same markup as the existing tiles) linking to
+   `tools/<tool-name>.html`, including descriptive `data-keywords` (at least
+   five), a `data-category`, and a `data-updated` date.
+9. Test offline by opening `index.html` directly in a browser.

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Section properties tool: area, centroid, second moment of area (moment of inertia) and section modulus of common beam cross-sections. Dimensions in mm, offline.">
+  <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+  <title>Tool: Section Properties</title>
+  <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="../assets/css/template.css">
+</head>
+<body>
+  <nav class="navbar sticky-top dashboard-header">
+    <div class="container-xl">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="../index.html">
+        <img src="../assets/img/logo-navbar.png" alt="Logo" class="navbar-logo">
+        <span class="fw-semibold">&larr; Engineering Tools Dashboard</span>
+      </a>
+      <button id="theme-toggle" class="btn btn-sm btn-outline-secondary ms-auto" type="button" aria-label="Toggle light/dark theme">&#127769;</button>
+    </div>
+  </nav>
+
+  <main class="container-xl py-4">
+    <h1 class="h3 mb-1">Section Properties</h1>
+    <p class="text-body-secondary small mb-4">Area, centroid, second moment of area (moment of inertia) and section modulus of a beam cross-section. Inputs in mm; results in mm-based units and SI (m-based) units.</p>
+
+    <div class="tool-layout">
+      <!-- ============ LEFT: INPUTS (30%) ============ -->
+      <div class="d-flex flex-column gap-3" id="input-tiles">
+        <h2 class="tool-col-header mb-0">Input</h2>
+        <form id="tool-inputs" novalidate class="d-flex flex-column gap-3">
+
+          <div class="card">
+            <div class="card-header">Section type</div>
+            <div class="card-body">
+              <label for="in-section" class="form-label">Profile</label>
+              <select class="form-select" id="in-section">
+                <option value="i-beam">I-beam</option>
+                <option value="flat-bar-v">Flat bar</option>
+                <option value="bulb" selected>Bulb profile</option>
+                <option value="round-tube">Round tube</option>
+                <option value="square-tube">Square tube</option>
+                <option value="rect-tube">Rectangular tube</option>
+              </select>
+              <div class="form-text">Typical section types; all dimensions below stay editable (mm).</div>
+            </div>
+          </div>
+
+          <div class="card" id="card-bulb-select" hidden>
+            <div class="card-header">Predefined bulb profile (EN 10067 / DIN 1025-2)</div>
+            <div class="card-body">
+              <label for="in-bulb-profile" class="form-label">Standard size</label>
+              <select class="form-select" id="in-bulb-profile"></select>
+              <div class="form-text">Standardized hot-rolled bulb flats HP 60x4 &ndash; HP 430x20; h, t and bulb radius come from the standard table.</div>
+            </div>
+          </div>
+
+          <div class="card" id="card-dims">
+            <div class="card-header">Dimensions (mm)</div>
+            <div class="card-body" id="dim-controls">
+              <!-- dimension slider+number rows are generated per section type -->
+            </div>
+          </div>
+
+          <div class="card" id="card-drawing-options">
+            <div class="card-header">Drawing options</div>
+            <div class="card-body">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="in-centroid" checked>
+                <label class="form-check-label" for="in-centroid">Show centroid and centroidal axes</label>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- ============ RIGHT: OUTPUTS (70%) ============ -->
+      <div class="d-flex flex-column gap-3">
+        <h2 class="tool-col-header mb-0">Output</h2>
+
+        <div class="card">
+          <div class="card-header">Section properties</div>
+          <div class="card-body">
+            <div class="row g-3 text-center">
+              <div class="col-6 col-md-4">
+                <div class="text-body-secondary small">Area A</div>
+                <div class="result-value small" id="out-area">&mdash;</div>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="text-body-secondary small">Centroid &#563; (from y = 0)</div>
+                <div class="result-value small" id="out-yc">&mdash;</div>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="text-body-secondary small">I&#8339; (strong axis)</div>
+                <div class="result-value small" id="out-ix">&mdash;</div>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="text-body-secondary small">I&#7522; (weak axis)</div>
+                <div class="result-value small" id="out-iy">&mdash;</div>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="text-body-secondary small">W&#8339; (strong axis)</div>
+                <div class="result-value small" id="out-wx">&mdash;</div>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="text-body-secondary small">W&#7522; (weak axis)</div>
+                <div class="result-value small" id="out-wy">&mdash;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="card-plot">
+          <div class="card-header">Cross-section drawing (equal aspect, lowest point on y = 0)</div>
+          <div class="card-body">
+            <div id="out-plot" class="tool-plot"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Table output</div>
+          <div class="card-body table-responsive">
+            <table class="table table-sm table-striped mb-0" id="out-table">
+              <thead>
+                <tr><th>Quantity</th><th>Value</th><th>Unit</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============ BOTTOM: CALCULATIONS & SOURCES (100%) ============ -->
+      <div class="card tool-bottom">
+        <div class="card-header">Calculations used &amp; sources</div>
+        <div class="card-body">
+          <div class="row g-4">
+            <div class="col-lg-7">
+              <h2 class="h6">Equations (composite sections via the parallel-axis theorem)</h2>
+              <ul class="formula-list mb-3">
+                <li>Local axes: x horizontal, y vertical, origin at the lowest point of the section; &#563; measured from y = 0. All dimensions in mm.</li>
+                <li><code>I&#8339; = &int; y&sup2; dA</code> (about the horizontal centroidal axis &mdash; strong axis for upright sections), <code>I&#7522; = &int; x&sup2; dA</code> (vertical centroidal axis &mdash; weak axis)</li>
+                <li><code>I = I&#8450; + A d&sup2;</code> (Steiner / parallel-axis theorem, d = distance between axes)</li>
+                <li><code>W&#8339; = I&#8339; / c&#8339;</code>, <code>W&#7522; = I&#7522; / c&#7522;</code>, with c the distance from the centroid to the extreme fibre</li>
+                <li>I-beam: <code>I&#8339; = [b h&sup3; &minus; (b&minus;t_w)(h&minus;2t_f)&sup3;] / 12</code>, <code>I&#7522; = [2 t_f b&sup3; + (h&minus;2t_f) t_w&sup3;] / 12</code></li>
+                <li>Flat bar b&times;h: <code>A = bh</code>, <code>I&#8339; = b h&sup3;/12</code>, <code>I&#7522; = h b&sup3;/12</code></li>
+                <li>Tubes (outer minus inner): round tube <code>A = &pi;(d&sup2;&minus;d_i&sup2;)/4</code>, <code>I = &pi;(d&#8308;&minus;d_i&#8308;)/64</code>; square/rectangular tube subtracts the inner rectangle</li>
+                <li>Bulb profile (Hollandprofiel): predefined standard sizes HP 60x4&ndash;HP 430x20; geometry = web rectangle (h&minus;r_b)&times;t plus upper half-disc of radius r_b; half-disc: <code>A = &pi;r_b&sup2;/2</code>, <code>&#563;&#8338; = +4r_b/(3&pi;)</code> above the circle centre, <code>I&#8339;&#8450; = r_b&#8308;(&pi;/8 &minus; 8/(9&pi;))</code>, <code>I&#7522;&#8450; = &pi;r_b&#8308;/8</code></li>
+              </ul>
+              <p class="small text-body-secondary mb-0">Sharp-corner idealisation: root fillets of hot-rolled profiles are neglected, so computed bulb values are a few percent below catalogue values (e.g. HP 120x6: model A = 7.82 cm&sup2; vs catalogue 9.32 cm&sup2;, I&#8339; = 104 vs 133 cm&#8308;).</p>
+            </div>
+            <div class="col-lg-5">
+              <h2 class="h6">Sources</h2>
+              <ul class="small mb-0">
+                <li>Hibbeler, R. C., <em>Mechanics of Materials</em> — area moments of inertia, parallel-axis theorem, section modulus.</li>
+                <li>Beer, F. P., Johnston, E. R., DeWolf, J. T., <em>Mechanics of Materials</em> — Appendix A: geometric properties of areas.</li>
+                <li>EN 10034 / DIN 1025-1 — dimensions of hot-rolled HEA/IPE I-sections.</li>
+                <li>EN 10067:1996 / DIN 1025-2 — hot-rolled bulb flats (Holland profiles); dimension table as published by ArcelorMittal, <em>Technical information — Bulbflats</em> (bundled in `assets/data/bulb-profiles.js`).</li>
+                <li>Wikipedia: <em>Second moment of area</em> and <em>Parallel axis theorem</em>.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="dashboard-footer text-center small text-body-secondary py-3 border-top">
+    <span class="last-updated" id="last-updated"></span>
+    TG2026 - Make sure you validate your calculations before using them for professional purposes.
+  </footer>
+
+  <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="../assets/vendor/plotly/plotly-cartesian.min.js"></script>
+  <script src="../assets/js/template.js"></script>
+  <script src="../assets/js/tools.js"></script>
+  <script src="../assets/data/bulb-profiles.js"></script>
+  <script src="../assets/js/section-properties.js"></script>
+</body>
+</html>
