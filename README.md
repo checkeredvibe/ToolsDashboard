@@ -26,7 +26,10 @@ All results use SI units. No external network resources are used — open
   - inputs: text, number, single slider, two-sided slider (slide or type
     min/max, both stay in sync, step 0.1), on/off switch, dropdown select,
     multi-select checkboxes, date/time picker, color picker, single-choice
-    radio group, local .csv file upload (FileReader, never sent anywhere)
+    radio group, local .csv file upload (FileReader, never sent anywhere);
+    a bundled placeholder `assets/data/example.csv` is auto-loaded into the
+    CSV preview on page load (over Pages/HTTP; via file:// fetch is blocked,
+    so upload manually there)
   - outputs: number readout, interactive 2D Plotly plot, 3D surface plot
     (gl3d bundle), table, image snapshot (`Plotly.toImage`), CSV preview
     table, copy-results-to-clipboard button, download-plot-as-PNG button
@@ -47,6 +50,8 @@ All results use SI units. No external network resources are used — open
   plots, tables) on the right, and a full-width bottom row with the formulas
   used and their sources.
 - `assets/img/` — self-hosted images (navbar logo).
+- `assets/data/example.csv` — placeholder CSV auto-loaded by the template's
+  CSV preview card (projectile trajectory sample data, SI units).
 
 ## Design decisions
 

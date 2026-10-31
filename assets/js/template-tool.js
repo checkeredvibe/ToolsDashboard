@@ -275,6 +275,15 @@
   els.checks.forEach(c => c.addEventListener('change', update));
   els.radios.forEach(r => r.addEventListener('change', update));
 
+  function loadCsvText(text, sourceLabel) {
+    const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+    if (lines.length === 0) throw new Error('empty');
+    const parseRow = (l) => l.split(',').map(c => c.trim());
+    csvData = { headers: parseRow(lines[0]), rows: lines.slice(1).map(parseRow) };
+    els.csvStatus.textContent = sourceLabel + ' — ' + csvData.rows.length + ' data rows, ' + csvData.headers.length + ' columns.';
+    renderCsvTable();
+  }
+
   // CSV upload: parsed locally with FileReader, rendered into a table
   els.csv.addEventListener('change', () => {
     const file = els.csv.files && els.csv.files[0];
@@ -288,13 +297,7 @@
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const text = String(reader.result);
-        const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
-        if (lines.length === 0) throw new Error('empty');
-        const parseRow = (l) => l.split(',').map(c => c.trim());
-        csvData = { headers: parseRow(lines[0]), rows: lines.slice(1).map(parseRow) };
-        els.csvStatus.textContent = file.name + ' — ' + csvData.rows.length + ' data rows, ' + csvData.headers.length + ' columns.';
-        renderCsvTable();
+        loadCsvText(String(reader.result), file.name);
       } catch (e) {
         csvData = null;
         els.csvStatus.textContent = 'Could not parse "' + file.name + '" as CSV.';
@@ -329,4 +332,10 @@
 
   syncDualRange();
   update();
+
+  // Load the bundled placeholder CSV as an example on first visit
+  fetch('../assets/data/example.csv')
+    .then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.text(); })
+    .then(text => loadCsvText(text, 'example.csv (bundled placeholder)'))
+    .catch(() => { els.csvStatus.textContent = 'No file loaded — the bundled example.csv loads automatically over HTTP/Pages; via file:// please upload a CSV manually.'; });
 })();
