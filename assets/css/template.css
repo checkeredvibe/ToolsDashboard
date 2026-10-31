@@ -190,3 +190,40 @@
 [data-bs-theme="dark"] .dashboard-footer {
   color: #c7c8f0;
 }
+
+/* --- Tool page layout: 30% inputs / 70% results, full-width bottom row --- */
+.tool-layout {
+  display: grid;
+  grid-template-columns: 30fr 70fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.tool-layout > .tool-bottom {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 991.98px) {
+  .tool-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tool-plot {
+  width: 100%;
+  height: 440px;
+}
+
+.result-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.formula-list code {
+  color: var(--brand);
+  word-break: break-word;
+}
+
+[data-bs-theme="dark"] .formula-list code {
+  color: #c7c8f0;
+}

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Projectile motion tool: trajectory, range, maximum height and flight time of a projectile launched at an angle. SI units, offline.">
+  <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+  <title>Tool: Projectile Motion</title>
+  <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="../assets/css/template.css">
+</head>
+<body>
+  <nav class="navbar sticky-top dashboard-header">
+    <div class="container-xl">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="../index.html">
+        <img src="../assets/img/logo-navbar.png" alt="Logo" class="navbar-logo">
+        <span class="fw-semibold">&larr; Engineering Tools Dashboard</span>
+      </a>
+      <button id="theme-toggle" class="btn btn-sm btn-outline-secondary ms-auto" type="button" aria-label="Toggle light/dark theme">&#127769;</button>
+    </div>
+  </nav>
+
+  <main class="container-xl py-4">
+    <h1 class="h3 mb-1">Projectile Motion</h1>
+    <p class="text-body-secondary small mb-4">Trajectory of a projectile launched from flat ground under gravity. All inputs and results in SI units (m, m/s, s, rad, m/s&sup2;).</p>
+
+    <div class="tool-layout">
+      <div class="card">
+        <div class="card-header">Inputs</div>
+        <div class="card-body">
+          <form id="inputs-form" novalidate>
+            <div class="mb-3">
+              <label for="in-speed" class="form-label">Initial speed v&#8320; (m/s)</label>
+              <input type="number" class="form-control" id="in-speed" min="0" step="any" value="25" required>
+              <div class="form-text">Magnitude of the launch velocity.</div>
+            </div>
+            <div class="mb-3">
+              <label for="in-angle" class="form-label">Launch angle &theta; (deg)</label>
+              <input type="number" class="form-control" id="in-angle" min="0" max="90" step="any" value="45" required>
+              <div class="form-text">Angle above the horizontal, 0&ndash;90&deg;.</div>
+            </div>
+            <div class="mb-3">
+              <label for="in-height" class="form-label">Launch height h&#8320; (m)</label>
+              <input type="number" class="form-control" id="in-height" min="0" step="any" value="0" required>
+              <div class="form-text">Height above ground at launch.</div>
+            </div>
+            <div class="mb-3">
+              <label for="in-gravity" class="form-label">Gravity g (m/s&sup2;)</label>
+              <input type="number" class="form-control" id="in-gravity" min="0.01" step="any" value="9.81" required>
+              <div class="form-text">Gravitational acceleration, e.g. 9.81 on Earth.</div>
+            </div>
+            <div class="mb-3">
+              <label for="in-steps" class="form-label">Trajectory points</label>
+              <input type="number" class="form-control" id="in-steps" min="10" max="2000" step="10" value="200" required>
+              <div class="form-text">Resolution of the plotted path.</div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Calculate</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="d-flex flex-column gap-4">
+        <div class="card">
+          <div class="card-header">Results</div>
+          <div class="card-body">
+            <div class="row g-3 text-center">
+              <div class="col-6 col-md-3">
+                <div class="text-body-secondary small">Flight time</div>
+                <div class="result-value" id="out-time">&mdash;</div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-body-secondary small">Range (horizontal distance)</div>
+                <div class="result-value" id="out-range">&mdash;</div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-body-secondary small">Maximum height</div>
+                <div class="result-value" id="out-apex">&mdash;</div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-body-secondary small">Impact speed</div>
+                <div class="result-value" id="out-impact">&mdash;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span>Trajectory</span>
+            <button id="animate-btn" type="button" class="btn btn-sm btn-outline-primary">&#9654; Animate</button>
+          </div>
+          <div class="card-body">
+            <div id="plot" class="tool-plot"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card tool-bottom">
+        <div class="card-header">Calculations used &amp; sources</div>
+        <div class="card-body">
+          <div class="row g-4">
+            <div class="col-lg-7">
+              <h2 class="h6">Equations of motion (no air resistance)</h2>
+              <ul class="formula-list mb-3">
+                <li><code>x(t) = v&#8320; &middot; cos(&theta;) &middot; t</code></li>
+                <li><code>y(t) = h&#8320; + v&#8320; &middot; sin(&theta;) &middot; t &minus; &frac12; g t&sup2;</code></li>
+                <li><code>t<sub>flight</sub> = (v&#8320; sin&theta; + &radic;(v&#8320;&sup2; sin&sup2;&theta; + 2 g h&#8320;)) / g</code> (positive root of y(t)=0)</li>
+                <li><code>R = v&#8320; cos&theta; &middot; t<sub>flight</sub></code></li>
+                <li><code>h<sub>max</sub> = h&#8320; + (v&#8320; sin&theta;)&sup2; / (2 g)</code></li>
+                <li><code>v<sub>impact</sub> = &radic;(v<sub>x</sub>&sup2; + v<sub>y,impact</sub>&sup2;), with v<sub>y,impact</sub> = v&#8320; sin&theta; &minus; g t<sub>flight</sub></code></li>
+              </ul>
+              <p class="small text-body-secondary mb-0">Assumes a point mass, constant gravitational field, flat ground and no aerodynamic drag.</p>
+            </div>
+            <div class="col-lg-5">
+              <h2 class="h6">Sources</h2>
+              <ul class="small mb-0">
+                <li>Serway, R. A. &amp; Jewett, J. W., <em>Physics for Scientists and Engineers</em>, chapter on motion in two dimensions (projectile motion).</li>
+                <li>Halliday, D., Resnick, R. &amp; Walker, J., <em>Fundamentals of Physics</em>, chapter 4 (motion in two and three dimensions).</li>
+                <li>Wikipedia: <em>Projectile motion</em> &mdash; equations for range, maximum height and time of flight.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="dashboard-footer text-center small text-body-secondary py-3 border-top">
+    This dashboard is partially created by Vibe-coding. Make sure you validate your calculations.
+  </footer>
+
+  <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="../assets/vendor/plotly/plotly-cartesian.min.js"></script>
+  <script src="../assets/js/template.js"></script>
+  <script src="../assets/js/tools.js"></script>
+  <script src="../assets/js/projectile-motion.js"></script>
+</body>
+</html>

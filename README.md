@@ -9,6 +9,10 @@ All results use SI units. No external network resources are used — open
 - Fully offline, static HTML — no CDN links, no build step, no server required.
 - Bootstrap 5.3.3 is self-hosted in `assets/vendor/bootstrap/` (plain CSS + JS
   files, nothing compiled).
+- Plotly.js 2.35.2 (cartesian bundle) is self-hosted in
+  `assets/vendor/plotly/` for interactive, animated offline plots. Use the
+  cartesian bundle (`plotly-cartesian.min.js`) — it covers line/scatter/bar
+  charts; only add gl3d/mapbox bundles if a tool needs them.
 - `index.html` — main dashboard with a live-filtered, sortable grid of tool tiles.
   Features: match highlighting, category filter chips, result counter, clear
   button + `Esc` to reset the search, sort (default / A–Z / recently added via
@@ -23,6 +27,11 @@ All results use SI units. No external network resources are used — open
 - `assets/js/dashboard.js` — index-page logic: live search filter with
   highlighting, category chips, sorting, result counter, URL-hash state.
 - `assets/js/tools.js` — shared SI-unit helpers (`SI.format`, `SI.parse`).
+- `assets/js/<tool-name>.js` — per-tool logic (calculations + Plotly plots).
+- `tools/<tool-name>.html` — tool pages use the `.tool-layout` grid from
+  `template.css`: 30% inputs on the left, 70% results (values, interactive
+  plots, tables) on the right, and a full-width bottom row with the formulas
+  used and their sources.
 - `assets/img/` — self-hosted images (navbar logo).
 
 ## Design decisions
@@ -46,9 +55,12 @@ All results use SI units. No external network resources are used — open
 1. Copy `tools/_template.html` to `tools/<tool-name>.html`.
 2. Update the `<title>`, heading, and description; keep the shared
    `../assets/...` relative links (Bootstrap, template CSS/JS, tools.js).
-3. Build the tool inside the Inputs/Results card layout.
+3. Build the tool inside the `.tool-layout` grid: inputs card (left, 30%),
+   results card(s) with Plotly plots (right, 70%), and a `.tool-bottom` card
+   (100% width) listing the equations used and their sources.
 4. Use the `SI.format` / `SI.parse` helpers from `tools.js` for all values;
-   all inputs and results in SI units.
+   all inputs and results in SI units. Load
+   `../assets/vendor/plotly/plotly-cartesian.min.js` for plots.
 5. Add a tile to `index.html` (same markup as the existing tiles) linking to
    `tools/<tool-name>.html`, including descriptive `data-keywords`, a
    `data-category`, and a `data-updated` date.
