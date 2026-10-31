@@ -79,6 +79,12 @@
     return Number(v.toPrecision(4));
   }
 
+  // Dual-unit readout: value is in the mm-based unit, also show the SI (m-based) value
+  function dual(value, mmUnit, mUnit, mmToM) {
+    if (!Number.isFinite(value)) return '—';
+    return SI.format(value, mmUnit) + '  (' + SI.format(value * mmToM, mUnit) + ')';
+  }
+
   function buildDimControls(sectionKey) {
     els.dimBox.innerHTML = '';
     dimRows = [];
@@ -287,12 +293,12 @@
   }
 
   function renderNumbers(res) {
-    els.out.area.textContent = SI.format(res.A, 'mm²');
-    els.out.yc.textContent = SI.format(res.yc, 'mm');
-    els.out.ix.textContent = SI.format(res.Ix, 'mm⁴');
-    els.out.iy.textContent = SI.format(res.Iy, 'mm⁴');
-    els.out.wx.textContent = SI.format(res.Wx, 'mm³');
-    els.out.wy.textContent = SI.format(res.Wy, 'mm³');
+    els.out.area.textContent = dual(res.A, 'mm²', 'm²', 1e-6);
+    els.out.yc.textContent = dual(res.yc, 'mm', 'm', 1e-3);
+    els.out.ix.textContent = dual(res.Ix, 'mm⁴', 'm⁴', 1e-12);
+    els.out.iy.textContent = dual(res.Iy, 'mm⁴', 'm⁴', 1e-12);
+    els.out.wx.textContent = dual(res.Wx, 'mm³', 'm³', 1e-9);
+    els.out.wy.textContent = dual(res.Wy, 'mm³', 'm³', 1e-9);
   }
 
   function renderTable(key, d, res) {
@@ -300,12 +306,12 @@
     const rows = [
       ['Section', SECTIONS[key].label, '—'],
       ...SECTIONS[key].dims.map(dd => [dd.label, num(d[dd.key]), 'mm']),
-      ['Area A', num(res.A), 'mm²'],
-      ['Centroid ȳ', num(res.yc), 'mm'],
-      ['I_x (strong)', num(res.Ix), 'mm⁴'],
-      ['I_y (weak)', num(res.Iy), 'mm⁴'],
-      ['W_x (strong)', num(res.Wx), 'mm³'],
-      ['W_y (weak)', num(res.Wy), 'mm³']
+      ['Area A', num(res.A), 'mm² = ' + num(res.A * 1e-6) + ' m²'],
+      ['Centroid ȳ', num(res.yc), 'mm = ' + num(res.yc * 1e-3) + ' m'],
+      ['I_x (strong)', num(res.Ix), 'mm⁴ = ' + num(res.Ix * 1e-12) + ' m⁴'],
+      ['I_y (weak)', num(res.Iy), 'mm⁴ = ' + num(res.Iy * 1e-12) + ' m⁴'],
+      ['W_x (strong)', num(res.Wx), 'mm³ = ' + num(res.Wx * 1e-9) + ' m³'],
+      ['W_y (weak)', num(res.Wy), 'mm³ = ' + num(res.Wy * 1e-9) + ' m³']
     ];
     els.tableBody.innerHTML = rows
       .map(r => '<tr><td>' + r[0] + '</td><td class="result-value">' + r[1] + '</td><td>' + r[2] + '</td></tr>').join('');

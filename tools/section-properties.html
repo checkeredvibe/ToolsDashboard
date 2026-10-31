@@ -22,7 +22,7 @@
 
   <main class="container-xl py-4">
     <h1 class="h3 mb-1">Section Properties</h1>
-    <p class="text-body-secondary small mb-4">Area, centroid, second moment of area (moment of inertia) and section modulus of a beam cross-section. Dimensions in mm; results in mm, mm&sup2;, mm&sup3;, mm&#8308;.</p>
+    <p class="text-body-secondary small mb-4">Area, centroid, second moment of area (moment of inertia) and section modulus of a beam cross-section. Inputs in mm; results in mm-based units and SI (m-based) units.</p>
 
     <div class="tool-layout">
       <!-- ============ LEFT: INPUTS (30%) ============ -->
@@ -76,27 +76,27 @@
             <div class="row g-3 text-center">
               <div class="col-6 col-md-4">
                 <div class="text-body-secondary small">Area A</div>
-                <div class="result-value" id="out-area">&mdash;</div>
+                <div class="result-value small" id="out-area">&mdash;</div>
               </div>
               <div class="col-6 col-md-4">
-                <div class="text-body-secondary small">Centroid &#563; (from bottom)</div>
-                <div class="result-value" id="out-yc">&mdash;</div>
+                <div class="text-body-secondary small">Centroid &#563; (from y = 0)</div>
+                <div class="result-value small" id="out-yc">&mdash;</div>
               </div>
               <div class="col-6 col-md-4">
                 <div class="text-body-secondary small">I&#8339; (strong axis)</div>
-                <div class="result-value" id="out-ix">&mdash;</div>
+                <div class="result-value small" id="out-ix">&mdash;</div>
               </div>
               <div class="col-6 col-md-4">
                 <div class="text-body-secondary small">I&#7522; (weak axis)</div>
-                <div class="result-value" id="out-iy">&mdash;</div>
+                <div class="result-value small" id="out-iy">&mdash;</div>
               </div>
               <div class="col-6 col-md-4">
                 <div class="text-body-secondary small">W&#8339; (strong axis)</div>
-                <div class="result-value" id="out-wx">&mdash;</div>
+                <div class="result-value small" id="out-wx">&mdash;</div>
               </div>
               <div class="col-6 col-md-4">
                 <div class="text-body-secondary small">W&#7522; (weak axis)</div>
-                <div class="result-value" id="out-wy">&mdash;</div>
+                <div class="result-value small" id="out-wy">&mdash;</div>
               </div>
             </div>
           </div>
