@@ -10,49 +10,49 @@
 
   const SECTIONS = {
     'i-beam': {
-      label: 'I-beam (HEA / IPE)',
+      label: 'I-beam',
       dims: [
-        { key: 'h', label: 'Height h', def: 190 },
-        { key: 'b', label: 'Flange width b', def: 200 },
-        { key: 'tw', label: 'Web thickness t_w', def: 6.5 },
-        { key: 'tf', label: 'Flange thickness t_f', def: 10 }
+        { key: 'h', label: 'Height h', def: 190, min: DIM_MIN, max: DIM_MAX },
+        { key: 'b', label: 'Flange width b', def: 200, min: DIM_MIN, max: DIM_MAX },
+        { key: 'tw', label: 'Web thickness t_w', def: 6.5, min: 1, max: 30 },
+        { key: 'tf', label: 'Flange thickness t_f', def: 10, min: 1, max: 30 }
       ]
     },
     'flat-bar-v': {
-      label: 'Flat bar (vertical)',
+      label: 'Flat bar',
       dims: [
-        { key: 'h', label: 'Height h', def: 100 },
-        { key: 'b', label: 'Width b', def: 10 }
+        { key: 'h', label: 'Height h', def: 100, min: DIM_MIN, max: DIM_MAX },
+        { key: 'b', label: 'Width b', def: 10, min: DIM_MIN, max: DIM_MAX }
       ]
     },
     bulb: {
-      label: 'Bulb profile (Hollandprofiel), bulb on top',
+      label: 'Bulb profile',
       dims: [
-        { key: 'h', label: 'Height h', def: 120 },
-        { key: 't', label: 'Web thickness t', def: 6 },
-        { key: 'rb', label: 'Bulb radius r_b', def: 8 }
+        { key: 'h', label: 'Height h', def: 120, min: DIM_MIN, max: DIM_MAX },
+        { key: 't', label: 'Web thickness t', def: 6, min: 1, max: 30 },
+        { key: 'rb', label: 'Bulb radius r_b', def: 8, min: DIM_MIN, max: DIM_MAX }
       ]
     },
     'round-tube': {
       label: 'Round tube',
       dims: [
-        { key: 'd', label: 'Outer diameter d', def: 100 },
-        { key: 't', label: 'Wall thickness t', def: 5 }
+        { key: 'd', label: 'Outer diameter d', def: 100, min: DIM_MIN, max: DIM_MAX },
+        { key: 't', label: 'Wall thickness t', def: 5, min: 1, max: 30 }
       ]
     },
     'square-tube': {
       label: 'Square tube',
       dims: [
-        { key: 'b', label: 'Outer width b', def: 100 },
-        { key: 't', label: 'Wall thickness t', def: 5 }
+        { key: 'b', label: 'Outer width b', def: 100, min: DIM_MIN, max: DIM_MAX },
+        { key: 't', label: 'Wall thickness t', def: 5, min: 1, max: 30 }
       ]
     },
     'rect-tube': {
       label: 'Rectangular tube',
       dims: [
-        { key: 'h', label: 'Height h', def: 200 },
-        { key: 'b', label: 'Width b', def: 100 },
-        { key: 't', label: 'Wall thickness t', def: 6 }
+        { key: 'h', label: 'Height h', def: 200, min: DIM_MIN, max: DIM_MAX },
+        { key: 'b', label: 'Width b', def: 100, min: DIM_MIN, max: DIM_MAX },
+        { key: 't', label: 'Wall thickness t', def: 6, min: 1, max: 30 }
       ]
     }
   };
@@ -83,27 +83,26 @@
     els.dimBox.innerHTML = '';
     dimRows = [];
     SECTIONS[sectionKey].dims.forEach((d) => {
+      const dmin = d.min !== undefined ? d.min : DIM_MIN;
+      const dmax = d.max !== undefined ? d.max : DIM_MAX;
       const row = document.createElement('div');
       row.className = 'mb-3';
       row.innerHTML =
-        '<label class="form-label mb-1">' + d.label + ' (mm) <output class="result-value" id="out-' + d.key + '">' + d.def + '</output></label>' +
+        '<label class="form-label mb-1" for="num-' + d.key + '">' + d.label + ' (mm)</label>' +
         '<div class="d-flex gap-2 align-items-center">' +
-        '<input type="range" class="form-range flex-grow-1" id="slider-' + d.key + '" min="' + DIM_MIN + '" max="' + DIM_MAX + '" step="' + DIM_STEP + '" value="' + d.def + '">' +
-        '<input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-' + d.key + '" min="' + DIM_MIN + '" max="' + DIM_MAX + '" step="any" value="' + d.def + '">' +
+        '<input type="range" class="form-range flex-grow-1" id="slider-' + d.key + '" min="' + dmin + '" max="' + dmax + '" step="' + DIM_STEP + '" value="' + d.def + '">' +
+        '<input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-' + d.key + '" min="' + dmin + '" max="' + dmax + '" step="any" value="' + d.def + '">' +
         '</div>';
       els.dimBox.appendChild(row);
       const slider = row.querySelector('#slider-' + d.key);
       const num = row.querySelector('#num-' + d.key);
-      const outv = row.querySelector('#out-' + d.key);
-      dimRows.push({ key: d.key, label: d.label, slider, num, outv });
-      slider.addEventListener('input', () => { num.value = slider.value; outv.textContent = fmt(slider.value); updateLight(); });
+      dimRows.push({ key: d.key, label: d.label, slider, num, min: dmin, max: dmax });
+      slider.addEventListener('input', () => { num.value = slider.value; updateLight(); });
       slider.addEventListener('change', update);
       num.addEventListener('input', () => {
         const v = SI.parse(num.value);
         if (Number.isFinite(v)) {
-          const c = Math.min(Math.max(v, DIM_MIN), DIM_MAX);
-          slider.value = c;
-          outv.textContent = fmt(c);
+          slider.value = Math.min(Math.max(v, dmin), dmax);
         }
         updateLight();
       });
