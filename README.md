@@ -30,10 +30,9 @@ All results use SI units. No external network resources are used — open
     a bundled placeholder `assets/data/example.csv` is auto-loaded into the
     CSV preview on page load (over Pages/HTTP; via file:// fetch is blocked,
     so upload manually there)
-  - outputs: number readout, interactive 2D Plotly plot, 3D surface plot
-    (gl3d bundle), table, image snapshot (`Plotly.toImage`), CSV preview
-    table, copy-results-to-clipboard button, download-plot-as-PNG button
-    (`Plotly.downloadImage`) — all local, no network
+  - outputs: number readout, interactive 2D Plotly plot (hover + PNG download
+    via the built-in modebar), 3D surface plot (gl3d bundle), table, image
+    snapshot (`Plotly.toImage`), CSV preview table — all local, no network
   - plots redraw only on slider release (`change` event); while dragging,
     only the cheap number/table update runs (`input` event) to avoid lag
   - bottom row: equations used + sources

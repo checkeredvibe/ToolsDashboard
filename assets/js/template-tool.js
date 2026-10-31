@@ -27,8 +27,6 @@
     plot3d: $('out-plot-3d'),
     tableBody: $('out-table').querySelector('tbody'),
     outImage: $('out-image'),
-    btnCopy: $('btn-copy-results'),
-    btnPng: $('btn-download-png'),
     csv: $('in-csv'),
     csvStatus: $('csv-status'),
     csvSummary: $('csv-summary'),
@@ -236,27 +234,6 @@
     renderTable(p, res);
     renderPlots(p, res, grid);
   }
-
-  function resultsText() {
-    const p = readInputs();
-    const rows = Array.from(els.tableBody.querySelectorAll('tr'))
-      .map(tr => Array.from(tr.children).map(td => td.textContent).join(' = '));
-    return (els.outNumber.textContent !== '—' ? 'y RMS = ' + els.outNumber.textContent + '\n' : '') + rows.join('\n');
-  }
-
-  els.btnCopy.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(resultsText());
-      els.btnCopy.textContent = '✓ Copied';
-    } catch (e) {
-      els.btnCopy.textContent = '✗ Failed';
-    }
-    setTimeout(() => { els.btnCopy.innerHTML = '&#128203; Copy results'; }, 1500);
-  });
-
-  els.btnPng.addEventListener('click', () => {
-    Plotly.downloadImage(els.plot, { format: 'png', width: 1200, height: 600, filename: 'plot' });
-  });
 
   // Sliders: 'input' fires continuously while dragging -> light update only;
   // 'change' fires on release -> full update with plot redraws (no lag).
