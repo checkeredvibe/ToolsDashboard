@@ -24,6 +24,7 @@
     radios: Array.from(document.querySelectorAll('input[name="in-radio"]')),
     outNumber: $('out-number'),
     plot: $('out-plot'),
+    plotScatter: $('out-plot-scatter'),
     plot3d: $('out-plot-3d'),
     tableBody: $('out-table').querySelector('tbody'),
     outImage: $('out-image'),
@@ -176,6 +177,22 @@
       yaxis: { title: 'y (m)', gridcolor: colors.grid, zeroline: true, zerolinecolor: colors.grid }
     }, plotConfig);
 
+    const scatter = demoScatter(p);
+    Plotly.react(els.plotScatter, [{
+      x: scatter.xs,
+      y: scatter.ys,
+      mode: 'markers',
+      marker: { size: 8, color: p.color, opacity: 0.75 }
+    }], {
+      title: 'Demo scatter (x vs. y samples)',
+      margin: { t: 40, r: 20, b: 45, l: 60 },
+      paper_bgcolor: colors.paper,
+      plot_bgcolor: colors.paper,
+      font: { color: colors.font },
+      xaxis: { title: 'x (m)', gridcolor: colors.grid, zeroline: false },
+      yaxis: { title: 'y (m)', gridcolor: colors.grid, zeroline: true, zerolinecolor: colors.grid }
+    }, plotConfig);
+
     Plotly.react(els.plot3d, [{
       type: 'surface',
       x: grid.xs,
@@ -222,6 +239,7 @@
     if (!Number.isFinite(p.f) || p.f <= 0 || !Number.isFinite(p.A) || p.xMax <= p.xMin) {
       els.outNumber.textContent = '—';
       Plotly.purge(els.plot);
+      Plotly.purge(els.plotScatter);
       Plotly.purge(els.plot3d);
       els.tableBody.innerHTML = '';
       els.outImage.hidden = true;
@@ -233,6 +251,18 @@
     els.outNumber.textContent = SI.format(res.yRms, 'm');
     renderTable(p, res);
     renderPlots(p, res, grid);
+  }
+
+  function demoScatter(p) {
+    const n = 120;
+    const xs = [];
+    const ys = [];
+    for (let i = 0; i < n; i++) {
+      const x = p.xMin + (p.xMax - p.xMin) * (i + 0.5) / n;
+      xs.push(x);
+      ys.push(wave(p, x) + 0.15 * p.A * Math.sin(13.7 * i));
+    }
+    return { xs, ys };
   }
 
   // Sliders: 'input' fires continuously while dragging -> light update only;

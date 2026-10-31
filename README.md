@@ -30,9 +30,10 @@ All results use SI units. No external network resources are used — open
     a bundled placeholder `assets/data/example.csv` is auto-loaded into the
     CSV preview on page load (over Pages/HTTP; via file:// fetch is blocked,
     so upload manually there)
-  - outputs: number readout, interactive 2D Plotly plot (hover + PNG download
-    via the built-in modebar), 3D surface plot (gl3d bundle), table, image
-    snapshot (`Plotly.toImage`), CSV preview table — all local, no network
+  - outputs: number readout, interactive 2D line plot, scatter plot, 3D
+    surface plot (gl3d bundle; all with hover + PNG download via the built-in
+    modebar), table, image snapshot (`Plotly.toImage`), CSV preview table —
+    all local, no network
   - plots redraw only on slider release (`change` event); while dragging,
     only the cheap number/table update runs (`input` event) to avoid lag
   - bottom row: equations used + sources
@@ -88,7 +89,7 @@ All results use SI units. No external network resources are used — open
      single slider, two-sided slider, toggle, dropdown, checkboxes,
      date/time, color, radio, CSV upload — and number/2D plot/3D plot/
      table/image/CSV preview on the output side), as listed in
-     `tools/template.html`;
+     `tools/template.html` (2D line plot, scatter plot, 3D surface, …);
    - whether the engineer has **specific references** (textbooks, standards,
      papers, norms) that must be used for the calculations — these go into
      the bottom "Calculations used & sources" card.
