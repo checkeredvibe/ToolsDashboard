@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Section properties tool: area, centroid, second moment of area (moment of inertia) and section modulus of common beam cross-sections. SI units, offline.">
+  <meta name="description" content="Section properties tool: area, centroid, second moment of area (moment of inertia) and section modulus of common beam cross-sections. Dimensions in mm, offline.">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <title>Tool: Section Properties</title>
   <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
@@ -22,7 +22,7 @@
 
   <main class="container-xl py-4">
     <h1 class="h3 mb-1">Section Properties</h1>
-    <p class="text-body-secondary small mb-4">Area, centroid, second moment of area (moment of inertia) and section modulus of a beam cross-section. All inputs and results in SI units (m, m&sup2;, m&sup3;, m&#8308;).</p>
+    <p class="text-body-secondary small mb-4">Area, centroid, second moment of area (moment of inertia) and section modulus of a beam cross-section. Dimensions in mm; results in mm, mm&sup2;, mm&sup3;, mm&#8308;.</p>
 
     <div class="tool-layout">
       <!-- ============ LEFT: INPUTS (30%) ============ -->
@@ -35,18 +35,19 @@
             <div class="card-body">
               <label for="in-section" class="form-label">Profile</label>
               <select class="form-select" id="in-section">
-                <option value="i-section">I-section (HEA / IPE)</option>
-                <option value="flat-bar">Flat bar (solid rectangle)</option>
-                <option value="bulb" selected>Bulb profile (bulb flat)</option>
-                <option value="rhs">RHS &mdash; rectangular hollow section</option>
-                <option value="round">Solid round bar</option>
+                <option value="i-beam">I-beam (HEA / IPE)</option>
+                <option value="flat-bar-v">Flat bar (vertical)</option>
+                <option value="bulb" selected>Bulb profile (Hollandprofiel, bulb on top)</option>
+                <option value="round-tube">Round tube</option>
+                <option value="square-tube">Square tube</option>
+                <option value="rect-tube">Rectangular tube</option>
               </select>
-              <div class="form-text">Typical hot-rolled section types; all dimensions below stay editable.</div>
+              <div class="form-text">Typical section types; all dimensions below stay editable (mm).</div>
             </div>
           </div>
 
           <div class="card">
-            <div class="card-header">Dimensions (m)</div>
+            <div class="card-header">Dimensions (mm)</div>
             <div class="card-body" id="dim-controls">
               <!-- dimension slider+number rows are generated per section type -->
             </div>
@@ -102,7 +103,7 @@
         </div>
 
         <div class="card">
-          <div class="card-header">Cross-section drawing (equal aspect, origin at bottom-left of bounding box)</div>
+          <div class="card-header">Cross-section drawing (equal aspect, lowest point on y = 0)</div>
           <div class="card-body">
             <div id="out-plot" class="tool-plot"></div>
           </div>
@@ -130,13 +131,14 @@
             <div class="col-lg-7">
               <h2 class="h6">Equations (composite sections via the parallel-axis theorem)</h2>
               <ul class="formula-list mb-3">
-                <li>Local axes: x horizontal, y vertical; &#563; measured from the bottom of the section.</li>
+                <li>Local axes: x horizontal, y vertical, origin at the lowest point of the section; &#563; measured from y = 0. All dimensions in mm.</li>
                 <li><code>I&#8339; = &int; y&sup2; dA</code> (about the horizontal centroidal axis &mdash; strong axis for upright sections), <code>I&#7522; = &int; x&sup2; dA</code> (vertical centroidal axis &mdash; weak axis)</li>
                 <li><code>I = I&#8450; + A d&sup2;</code> (Steiner / parallel-axis theorem, d = distance between axes)</li>
                 <li><code>W&#8339; = I&#8339; / c&#8339;</code>, <code>W&#7522; = I&#7522; / c&#7522;</code>, with c the distance from the centroid to the extreme fibre</li>
-                <li>I-section: <code>I&#8339; = [b h&sup3; &minus; (b&minus;t_w)(h&minus;2t_f)&sup3;] / 12</code>, <code>I&#7522; = [2 t_f b&sup3; + (h&minus;2t_f) t_w&sup3;] / 12</code></li>
-                <li>Rectangle b&times;t: <code>A = bt</code>, <code>I&#8339; = b t&sup3;/12</code>, <code>I&#7522; = t b&sup3;/12</code>; RHS subtracts the inner rectangle; round bar d: <code>I = &pi;d&#8308;/64</code></li>
-                <li>Bulb profile: web rectangle (h&minus;r)&times;t plus lower half-disc of radius r; half-disc: <code>A = &pi;r&sup2;/2</code>, <code>&#563;&#8338; = &minus;4r/(3&pi;)</code> from the circle centre, <code>I&#8339;&#8450; = r&#8308;(&pi;/8 &minus; 8/(9&pi;))</code>, <code>I&#7522;&#8450; = &pi;r&#8308;/8</code></li>
+                <li>I-beam: <code>I&#8339; = [b h&sup3; &minus; (b&minus;t_w)(h&minus;2t_f)&sup3;] / 12</code>, <code>I&#7522; = [2 t_f b&sup3; + (h&minus;2t_f) t_w&sup3;] / 12</code></li>
+                <li>Flat bar b&times;h: <code>A = bh</code>, <code>I&#8339; = b h&sup3;/12</code>, <code>I&#7522; = h b&sup3;/12</code></li>
+                <li>Tubes (outer minus inner): round tube <code>A = &pi;(d&sup2;&minus;d_i&sup2;)/4</code>, <code>I = &pi;(d&#8308;&minus;d_i&#8308;)/64</code>; square/rectangular tube subtracts the inner rectangle</li>
+                <li>Bulb profile (Hollandprofiel, bulb on top): web rectangle (h&minus;r_b)&times;t plus upper half-disc of radius r_b; half-disc: <code>A = &pi;r_b&sup2;/2</code>, <code>&#563;&#8338; = +4r_b/(3&pi;)</code> above the circle centre, <code>I&#8339;&#8450; = r_b&#8308;(&pi;/8 &minus; 8/(9&pi;))</code>, <code>I&#7522;&#8450; = &pi;r_b&#8308;/8</code></li>
               </ul>
               <p class="small text-body-secondary mb-0">Sharp-corner idealisation: root fillets of hot-rolled profiles are neglected, so table values differ by a few percent from catalogue values.</p>
             </div>

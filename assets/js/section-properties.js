@@ -1,5 +1,7 @@
 // Section properties tool: composite-section geometry (parallel-axis theorem),
-// section drawing and result table. All values in SI units (m, m^2, m^3, m^4).
+// section drawing and result table. All dimensions in mm; results in mm^2,
+// mm^3, mm^4 (SI-derived metric units). Drawings are anchored so the lowest
+// point of the section sits on y = 0.
 
 (function () {
   'use strict';
@@ -7,49 +9,57 @@
   const $ = (id) => document.getElementById(id);
 
   const SECTIONS = {
-    'i-section': {
-      label: 'I-section (HEA / IPE)',
+    'i-beam': {
+      label: 'I-beam (HEA / IPE)',
       dims: [
-        { key: 'h', label: 'Height h', def: 0.19 },
-        { key: 'b', label: 'Flange width b', def: 0.2 },
-        { key: 'tw', label: 'Web thickness t_w', def: 0.0065 },
-        { key: 'tf', label: 'Flange thickness t_f', def: 0.01 }
+        { key: 'h', label: 'Height h', def: 190 },
+        { key: 'b', label: 'Flange width b', def: 200 },
+        { key: 'tw', label: 'Web thickness t_w', def: 6.5 },
+        { key: 'tf', label: 'Flange thickness t_f', def: 10 }
       ]
     },
-    'flat-bar': {
-      label: 'Flat bar',
+    'flat-bar-v': {
+      label: 'Flat bar (vertical)',
       dims: [
-        { key: 'b', label: 'Width b', def: 0.2 },
-        { key: 't', label: 'Thickness t', def: 0.01 }
+        { key: 'h', label: 'Height h', def: 100 },
+        { key: 'b', label: 'Width b', def: 10 }
       ]
     },
     bulb: {
-      label: 'Bulb profile',
+      label: 'Bulb profile (Hollandprofiel), bulb on top',
       dims: [
-        { key: 'h', label: 'Height h', def: 0.12 },
-        { key: 't', label: 'Web thickness t', def: 0.006 },
-        { key: 'r', label: 'Bulb radius r', def: 0.006 }
+        { key: 'h', label: 'Height h', def: 120 },
+        { key: 't', label: 'Web thickness t', def: 6 },
+        { key: 'rb', label: 'Bulb radius r_b', def: 8 }
       ]
     },
-    rhs: {
-      label: 'RHS (hollow rectangle)',
+    'round-tube': {
+      label: 'Round tube',
       dims: [
-        { key: 'h', label: 'Height h', def: 0.2 },
-        { key: 'b', label: 'Width b', def: 0.1 },
-        { key: 't', label: 'Wall thickness t', def: 0.006 }
+        { key: 'd', label: 'Outer diameter d', def: 100 },
+        { key: 't', label: 'Wall thickness t', def: 5 }
       ]
     },
-    round: {
-      label: 'Solid round bar',
+    'square-tube': {
+      label: 'Square tube',
       dims: [
-        { key: 'd', label: 'Diameter d', def: 0.1 }
+        { key: 'b', label: 'Outer width b', def: 100 },
+        { key: 't', label: 'Wall thickness t', def: 5 }
+      ]
+    },
+    'rect-tube': {
+      label: 'Rectangular tube',
+      dims: [
+        { key: 'h', label: 'Height h', def: 200 },
+        { key: 'b', label: 'Width b', def: 100 },
+        { key: 't', label: 'Wall thickness t', def: 6 }
       ]
     }
   };
 
-  const DIM_MIN = 0.0005;
-  const DIM_MAX = 0.5;
-  const DIM_STEP = 0.0005;
+  const DIM_MIN = 0.5;
+  const DIM_MAX = 1000;
+  const DIM_STEP = 0.1;
 
   const els = {
     select: $('in-section'),
@@ -65,6 +75,10 @@
 
   let dimRows = [];
 
+  function fmt(v) {
+    return Number(v.toPrecision(4));
+  }
+
   function buildDimControls(sectionKey) {
     els.dimBox.innerHTML = '';
     dimRows = [];
@@ -72,7 +86,7 @@
       const row = document.createElement('div');
       row.className = 'mb-3';
       row.innerHTML =
-        '<label class="form-label mb-1">' + d.label + ' (m) <output class="result-value" id="out-' + d.key + '">' + d.def + '</output></label>' +
+        '<label class="form-label mb-1">' + d.label + ' (mm) <output class="result-value" id="out-' + d.key + '">' + d.def + '</output></label>' +
         '<div class="d-flex gap-2 align-items-center">' +
         '<input type="range" class="form-range flex-grow-1" id="slider-' + d.key + '" min="' + DIM_MIN + '" max="' + DIM_MAX + '" step="' + DIM_STEP + '" value="' + d.def + '">' +
         '<input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-' + d.key + '" min="' + DIM_MIN + '" max="' + DIM_MAX + '" step="any" value="' + d.def + '">' +
@@ -81,8 +95,7 @@
       const slider = row.querySelector('#slider-' + d.key);
       const num = row.querySelector('#num-' + d.key);
       const outv = row.querySelector('#out-' + d.key);
-      const entry = { key: d.key, label: d.label, slider, num, outv };
-      dimRows.push(entry);
+      dimRows.push({ key: d.key, label: d.label, slider, num, outv });
       slider.addEventListener('input', () => { num.value = slider.value; outv.textContent = fmt(slider.value); updateLight(); });
       slider.addEventListener('change', update);
       num.addEventListener('input', () => {
@@ -98,108 +111,137 @@
     });
   }
 
-  function fmt(v) {
-    return Number(v.toPrecision(4));
-  }
-
   function readDims() {
     const o = {};
     dimRows.forEach(r => { o[r.key] = SI.parse(r.num.value); });
     return o;
   }
 
-  function valid(d) {
+  function valid(key, d) {
     const v = Object.values(d);
     if (v.some(x => !Number.isFinite(x) || x < DIM_MIN)) return false;
-    if (d.tw !== undefined && (d.tw >= d.b / 2 || 2 * d.tf >= d.h)) return false;
-    if (d.t !== undefined && d.r !== undefined && d.r > d.h / 2) return false;
-    if (d.t !== undefined && d.b !== undefined && d.h !== undefined && d.tw === undefined && 2 * d.t >= Math.min(d.b, d.h)) return false;
+    if (key === 'i-beam') return d.tw < d.b && 2 * d.tf < d.h;
+    if (key === 'bulb') return d.rb >= d.t / 2 && d.rb < d.h;
+    if (key === 'round-tube') return 2 * d.t < d.d;
+    if (key === 'square-tube') return 2 * d.t < d.b;
+    if (key === 'rect-tube') return 2 * d.t < Math.min(d.b, d.h);
     return true;
   }
 
-  function compute(sectionKey, d) {
+  function compute(key, d) {
     let A, yc, Ix, Iy, halfW, h;
-    if (sectionKey === 'i-section') {
+    if (key === 'i-beam') {
       h = d.h;
       A = d.b * d.h - (d.b - d.tw) * (d.h - 2 * d.tf);
       Ix = (d.b * Math.pow(d.h, 3) - (d.b - d.tw) * Math.pow(d.h - 2 * d.tf, 3)) / 12;
       Iy = (2 * d.tf * Math.pow(d.b, 3) + (d.h - 2 * d.tf) * Math.pow(d.tw, 3)) / 12;
       yc = d.h / 2;
       halfW = d.b / 2;
-    } else if (sectionKey === 'flat-bar') {
-      h = d.t;
-      A = d.b * d.t;
-      Ix = d.b * Math.pow(d.t, 3) / 12;
-      Iy = d.t * Math.pow(d.b, 3) / 12;
-      yc = d.t / 2;
-      halfW = d.b / 2;
-    } else if (sectionKey === 'bulb') {
+    } else if (key === 'flat-bar-v') {
       h = d.h;
-      const webH = d.h - d.r;
-      const Aw = d.t * webH;
-      const yWeb = d.r + webH / 2;
-      const Ab = Math.PI * d.r * d.r / 2;
-      const yBulb = d.r - 4 * d.r / (3 * Math.PI);
-      A = Aw + Ab;
-      yc = (Aw * yWeb + Ab * yBulb) / A;
-      const IxWeb = d.t * Math.pow(webH, 3) / 12 + Aw * Math.pow(yWeb - yc, 2);
-      const IxBulb = Math.pow(d.r, 4) * (Math.PI / 8 - 8 / (9 * Math.PI)) + Ab * Math.pow(yBulb - yc, 2);
-      Ix = IxWeb + IxBulb;
-      Iy = webH * Math.pow(d.t, 3) / 12 + Math.PI * Math.pow(d.r, 4) / 8;
-      halfW = Math.max(d.t / 2, d.r);
-    } else if (sectionKey === 'rhs') {
-      h = d.h;
-      A = d.b * d.h - (d.b - 2 * d.t) * (d.h - 2 * d.t);
-      Ix = (d.b * Math.pow(d.h, 3) - (d.b - 2 * d.t) * Math.pow(d.h - 2 * d.t, 3)) / 12;
-      Iy = (d.h * Math.pow(d.b, 3) - (d.h - 2 * d.t) * Math.pow(d.b - 2 * d.t, 3)) / 12;
+      A = d.b * d.h;
+      Ix = d.b * Math.pow(d.h, 3) / 12;
+      Iy = d.h * Math.pow(d.b, 3) / 12;
       yc = d.h / 2;
       halfW = d.b / 2;
-    } else {
+    } else if (key === 'bulb') {
+      h = d.h;
+      const webH = d.h - d.rb;
+      const Aw = d.t * webH;
+      const yWeb = webH / 2;
+      const Ab = Math.PI * d.rb * d.rb / 2;
+      const yBulb = webH + 4 * d.rb / (3 * Math.PI);
+      A = Aw + Ab;
+      yc = (Aw * yWeb + Ab * yBulb) / A;
+      Ix = d.t * Math.pow(webH, 3) / 12 + Aw * Math.pow(yWeb - yc, 2)
+        + Math.pow(d.rb, 4) * (Math.PI / 8 - 8 / (9 * Math.PI)) + Ab * Math.pow(yBulb - yc, 2);
+      Iy = webH * Math.pow(d.t, 3) / 12 + Math.PI * Math.pow(d.rb, 4) / 8;
+      halfW = d.rb;
+    } else if (key === 'round-tube') {
       h = d.d;
-      A = Math.PI * d.d * d.d / 4;
-      Ix = Math.PI * Math.pow(d.d, 4) / 64;
+      const di = d.d - 2 * d.t;
+      A = Math.PI / 4 * (d.d * d.d - di * di);
+      Ix = Math.PI / 64 * (Math.pow(d.d, 4) - Math.pow(di, 4));
       Iy = Ix;
       yc = d.d / 2;
       halfW = d.d / 2;
+    } else if (key === 'square-tube') {
+      h = d.b;
+      const bi = d.b - 2 * d.t;
+      A = d.b * d.b - bi * bi;
+      Ix = (Math.pow(d.b, 4) - Math.pow(bi, 4)) / 12;
+      Iy = Ix;
+      yc = d.b / 2;
+      halfW = d.b / 2;
+    } else {
+      h = d.h;
+      const bi = d.b - 2 * d.t;
+      const hi = d.h - 2 * d.t;
+      A = d.b * d.h - bi * hi;
+      Ix = (d.b * Math.pow(d.h, 3) - bi * Math.pow(hi, 3)) / 12;
+      Iy = (d.h * Math.pow(d.b, 3) - hi * Math.pow(bi, 3)) / 12;
+      yc = d.h / 2;
+      halfW = d.b / 2;
     }
     const Wx = Ix / Math.max(yc, h - yc);
     const Wy = Iy / halfW;
     return { A, yc, Ix, Iy, Wx, Wy, halfW, h };
   }
 
-  function sectionShapes(sectionKey, d, bg) {
-    const shapes = [];
+  function circlePath(cx, cy, r, n) {
+    const pts = [];
+    for (let i = 0; i <= n; i++) {
+      const a = (2 * Math.PI * i) / n;
+      pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
+    }
+    return 'M' + pts.map(p => p[0].toFixed(6) + ',' + p[1].toFixed(6)).join('L') + 'Z';
+  }
+
+  function rectPath(x0, y0, x1, y1) {
+    return 'M' + [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(p => p[0] + ',' + p[1]).join('L') + 'Z';
+  }
+
+  function sectionShapes(key, d) {
     const fill = 'rgba(39, 41, 116, 0.55)';
     const line = { color: '#272974', width: 2 };
-    const path = (pts) => 'M' + pts.map(p => p.join(',')).join('L') + 'Z';
-    if (sectionKey === 'i-section') {
+    const shapes = [];
+    if (key === 'i-beam') {
       const { h, b, tw, tf } = d;
-      const x0 = -b / 2, x1 = -tw / 2, x2 = tw / 2, x3 = b / 2;
-      shapes.push({ type: 'path', path: path([[x0, h], [x3, h], [x3, h - tf], [x2, h - tf], [x2, tf], [x1, tf], [x1, h - tf], [x0, h - tf]]), fillcolor: fill, line });
-    } else if (sectionKey === 'flat-bar') {
-      shapes.push({ type: 'rect', x0: -d.b / 2, x1: d.b / 2, y0: 0, y1: d.t, fillcolor: fill, line });
-    } else if (sectionKey === 'bulb') {
-      const { h, t, r } = d;
-      shapes.push({ type: 'rect', x0: -t / 2, x1: t / 2, y0: r, y1: h, fillcolor: fill, line });
+      shapes.push({
+        type: 'path', fillrule: 'evenodd', fillcolor: fill, line,
+        path: rectPath(-b / 2, 0, b / 2, tf) + rectPath(-tw / 2, tf, tw / 2, h - tf) + rectPath(-b / 2, h - tf, b / 2, h)
+      });
+    } else if (key === 'flat-bar-v') {
+      shapes.push({ type: 'rect', x0: -d.b / 2, x1: d.b / 2, y0: 0, y1: d.h, fillcolor: fill, line });
+    } else if (key === 'bulb') {
+      const { h, t, rb } = d;
+      const webTop = h - rb;
       const n = 48;
       const pts = [];
       for (let i = 0; i <= n; i++) {
-        const a = Math.PI + (Math.PI * i) / n;
-        pts.push([r * Math.cos(a), r + r * Math.sin(a)]);
+        const a = (Math.PI * i) / n;
+        pts.push([rb * Math.cos(a), webTop + rb * Math.sin(a)]);
       }
-      shapes.push({ type: 'path', path: path(pts), fillcolor: fill, line });
-    } else if (sectionKey === 'rhs') {
-      const { h, b, t } = d;
-      shapes.push({ type: 'rect', x0: -b / 2, x1: b / 2, y0: 0, y1: h, fillcolor: fill, line });
-      shapes.push({ type: 'rect', x0: -(b / 2 - t), x1: b / 2 - t, y0: t, y1: h - t, fillcolor: bg, line });
+      const bulbPath = 'M' + pts.map(p => p[0].toFixed(6) + ',' + p[1].toFixed(6)).join('L') + 'Z';
+      shapes.push({ type: 'path', fillrule: 'evenodd', fillcolor: fill, line, path: rectPath(-t / 2, 0, t / 2, webTop) + bulbPath });
+    } else if (key === 'round-tube') {
+      shapes.push({
+        type: 'path', fillrule: 'evenodd', fillcolor: fill, line,
+        path: circlePath(0, d.d / 2, d.d / 2, 64) + circlePath(0, d.d / 2, (d.d - 2 * d.t) / 2, 64)
+      });
+    } else if (key === 'square-tube') {
+      const bi = d.b - 2 * d.t;
+      shapes.push({
+        type: 'path', fillrule: 'evenodd', fillcolor: fill, line,
+        path: rectPath(-d.b / 2, 0, d.b / 2, d.b) + rectPath(-bi / 2, d.t, bi / 2, d.b - d.t)
+      });
     } else {
-      const n = 64;
-      const pts = [];
-      for (let i = 0; i <= n; i++) {
-        const a = 2 * Math.PI * i / n;
-        pts.push([(d.d / 2) * Math.cos(a), (d.d / 2) + (d.d / 2) * Math.sin(a)]);
-      }
-      shapes.push({ type: 'path', path: path(pts), fillcolor: fill, line });
+      const bi = d.b - 2 * d.t;
+      const hi = d.h - 2 * d.t;
+      shapes.push({
+        type: 'path', fillrule: 'evenodd', fillcolor: fill, line,
+        path: rectPath(-d.b / 2, 0, d.b / 2, d.h) + rectPath(-bi / 2, d.t, bi / 2, d.h - d.t)
+      });
     }
     return shapes;
   }
@@ -214,10 +256,10 @@
     };
   }
 
-  function renderPlot(sectionKey, d, res) {
+  function renderPlot(key, d, res) {
     const colors = themeColors();
     const traces = [];
-    const shapes = sectionShapes(sectionKey, d, colors.paper);
+    const shapes = sectionShapes(key, d);
     if (els.centroidToggle.checked) {
       traces.push({
         x: [-res.halfW * 1.4, res.halfW * 1.4], y: [res.yc, res.yc],
@@ -234,38 +276,37 @@
       });
     }
     Plotly.react(els.plot, traces, {
-      title: SECTIONS[sectionKey].label,
+      title: SECTIONS[key].label,
       shapes,
       margin: { t: 40, r: 20, b: 45, l: 60 },
       paper_bgcolor: colors.paper,
       plot_bgcolor: colors.paper,
       font: { color: colors.font },
-      xaxis: { title: 'x (m)', gridcolor: colors.grid, zeroline: true, zerolinecolor: colors.grid, scaleanchor: 'y', scaleratio: 1 },
-      yaxis: { title: 'y (m)', gridcolor: colors.grid, zeroline: true, zerolinecolor: colors.grid },
-      showlegend: false
+      xaxis: { title: 'x (mm)', gridcolor: colors.grid, zeroline: true, zerolinecolor: colors.grid, scaleanchor: 'y', scaleratio: 1 },
+      yaxis: { title: 'y (mm)', gridcolor: colors.grid, zeroline: true, zerolinecolor: colors.grid }
     }, { responsive: true, displaylogo: false });
   }
 
   function renderNumbers(res) {
-    els.out.area.textContent = SI.format(res.A, 'm²');
-    els.out.yc.textContent = SI.format(res.yc, 'm');
-    els.out.ix.textContent = SI.format(res.Ix, 'm⁴');
-    els.out.iy.textContent = SI.format(res.Iy, 'm⁴');
-    els.out.wx.textContent = SI.format(res.Wx, 'm³');
-    els.out.wy.textContent = SI.format(res.Wy, 'm³');
+    els.out.area.textContent = SI.format(res.A, 'mm²');
+    els.out.yc.textContent = SI.format(res.yc, 'mm');
+    els.out.ix.textContent = SI.format(res.Ix, 'mm⁴');
+    els.out.iy.textContent = SI.format(res.Iy, 'mm⁴');
+    els.out.wx.textContent = SI.format(res.Wx, 'mm³');
+    els.out.wy.textContent = SI.format(res.Wy, 'mm³');
   }
 
-  function renderTable(sectionKey, d, res) {
+  function renderTable(key, d, res) {
     const num = (v) => String(Number(v.toPrecision(4)));
     const rows = [
-      ['Section', SECTIONS[sectionKey].label, '—'],
-      ...SECTIONS[sectionKey].dims.map(dd => [dd.label, num(d[dd.key]), 'm']),
-      ['Area A', num(res.A), 'm²'],
-      ['Centroid ȳ', num(res.yc), 'm'],
-      ['I_x (strong)', num(res.Ix), 'm⁴'],
-      ['I_y (weak)', num(res.Iy), 'm⁴'],
-      ['W_x (strong)', num(res.Wx), 'm³'],
-      ['W_y (weak)', num(res.Wy), 'm³']
+      ['Section', SECTIONS[key].label, '—'],
+      ...SECTIONS[key].dims.map(dd => [dd.label, num(d[dd.key]), 'mm']),
+      ['Area A', num(res.A), 'mm²'],
+      ['Centroid ȳ', num(res.yc), 'mm'],
+      ['I_x (strong)', num(res.Ix), 'mm⁴'],
+      ['I_y (weak)', num(res.Iy), 'mm⁴'],
+      ['W_x (strong)', num(res.Wx), 'mm³'],
+      ['W_y (weak)', num(res.Wy), 'mm³']
     ];
     els.tableBody.innerHTML = rows
       .map(r => '<tr><td>' + r[0] + '</td><td class="result-value">' + r[1] + '</td><td>' + r[2] + '</td></tr>').join('');
@@ -274,7 +315,7 @@
   function updateLight() {
     const key = els.select.value;
     const d = readDims();
-    if (!valid(d)) { els.tableBody.innerHTML = ''; return; }
+    if (!valid(key, d)) { els.tableBody.innerHTML = ''; return; }
     const res = compute(key, d);
     renderNumbers(res);
     renderTable(key, d, res);
@@ -283,7 +324,7 @@
   function update() {
     const key = els.select.value;
     const d = readDims();
-    if (!valid(d)) {
+    if (!valid(key, d)) {
       Object.values(els.out).forEach(el => { el.textContent = '—'; });
       Plotly.purge(els.plot);
       els.tableBody.innerHTML = '';
