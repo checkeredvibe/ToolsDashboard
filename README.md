@@ -56,10 +56,11 @@ All results use SI units. No external network resources are used — open
 - Tile `data-category` drives the category filter chips; `data-updated`
   (ISO date) drives the "Recently added" sort.
 - Footer: "This dashboard is partially created by Vibe-coding. Make sure you
-  validate your calculations." plus a bottom-left "Last updated on: …" date,
-  filled automatically by `template.js` from `document.lastModified` (served
-  file's last-modified time on Pages, file mtime via `file://`). Keep the
-  `<span id="last-updated">` in every page footer.
+  validate your calculations." plus a bottom-left "Last updated on: <date>
+  <HH:MM:SS>" timestamp, filled automatically by `template.js` from
+  `document.lastModified` (served file's last-modified time on Pages, file
+  mtime via `file://`). Keep the `<span id="last-updated">` in every page
+  footer.
 - GitHub Pages never serves files/directories starting with `_` (reserved for
   Jekyll), even in legacy branch mode — so the tool template is
   `tools/template.html` + `assets/js/template-tool.js`, not `_template.*`.
