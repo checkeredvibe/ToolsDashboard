@@ -9,10 +9,11 @@ All results use SI units. No external network resources are used — open
 - Fully offline, static HTML — no CDN links, no build step, no server required.
 - Bootstrap 5.3.3 is self-hosted in `assets/vendor/bootstrap/` (plain CSS + JS
   files, nothing compiled).
-- Plotly.js 2.35.2 (cartesian bundle) is self-hosted in
-  `assets/vendor/plotly/` for interactive, animated offline plots. Use the
-  cartesian bundle (`plotly-cartesian.min.js`) — it covers line/scatter/bar
-  charts; only add gl3d/mapbox bundles if a tool needs them.
+- Plotly.js 2.35.2 is self-hosted in `assets/vendor/plotly/` for interactive,
+  animated offline plots. Bundles included: `plotly-cartesian.min.js`
+  (line/scatter/bar charts) and `plotly-gl3d.min.js` (3D surface/scatter plots,
+  WebGL). Both ship with their license files; add mapbox/geo bundles only if a
+  tool needs maps.
 - `index.html` — main dashboard with a live-filtered, sortable grid of tool tiles.
   Features: match highlighting, category filter chips, result counter, clear
   button + `Esc` to reset the search, sort (default / A–Z / recently added via
