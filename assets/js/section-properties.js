@@ -8,6 +8,10 @@
 
   const $ = (id) => document.getElementById(id);
 
+  const DIM_MIN = 0.5;
+  const DIM_MAX = 1000;
+  const DIM_STEP = 0.1;
+
   const SECTIONS = {
     'i-beam': {
       label: 'I-beam',
@@ -56,10 +60,6 @@
       ]
     }
   };
-
-  const DIM_MIN = 0.5;
-  const DIM_MAX = 1000;
-  const DIM_STEP = 0.1;
 
   const els = {
     select: $('in-section'),
