@@ -20,7 +20,14 @@ All results use SI units. No external network resources are used — open
   `data-updated`), and shareable filter state in the URL hash
   (`index.html#q=...&cat=...&sort=...`).
 - `tools/<tool-name>.html` — one standalone HTML file per tool.
-- `tools/_template.html` — copy-paste starter for new tool pages.
+- `tools/_template.html` — general copy-paste starter for new tool pages. It
+  contains one example of every supported field type, wired by
+  `assets/js/_template.js` (demo model `y = A·sin(2πfx)`):
+  - inputs: text, number, single slider, two-sided slider (slide or type
+    min/max, both stay in sync), on/off switch
+  - outputs: number readout, interactive Plotly plot, table, image snapshot
+    (`Plotly.toImage`, no network)
+  - bottom row: equations used + sources
 - `assets/css/template.css` — shared styles on top of Bootstrap (brand theme,
   tile grid, navbar).
 - `assets/js/template.js` — shared logic: theme toggle (the only owner of this
@@ -53,16 +60,20 @@ All results use SI units. No external network resources are used — open
 
 ## New-tool recipe
 
-1. Copy `tools/_template.html` to `tools/<tool-name>.html`.
+1. Copy `tools/_template.html` to `tools/<tool-name>.html` (the template is
+   already wired with one example of every field type).
 2. Update the `<title>`, heading, and description; keep the shared
    `../assets/...` relative links (Bootstrap, template CSS/JS, tools.js).
-3. Build the tool inside the `.tool-layout` grid: inputs card (left, 30%),
-   results card(s) with Plotly plots (right, 70%), and a `.tool-bottom` card
-   (100% width) listing the equations used and their sources.
+3. Build your tool inside the `.tool-layout` grid: input cards (left,
+   30%), output cards with plots/tables (right, 70%), and a `.tool-bottom`
+   card (100% width) listing the equations used and their sources.
 4. Use the `SI.format` / `SI.parse` helpers from `tools.js` for all values;
    all inputs and results in SI units. Load
-   `../assets/vendor/plotly/plotly-cartesian.min.js` for plots.
-5. Add a tile to `index.html` (same markup as the existing tiles) linking to
+   `../assets/vendor/plotly/plotly-cartesian.min.js` for 2D plots and/or
+   `../assets/vendor/plotly/plotly-gl3d.min.js` for 3D plots.
+5. Copy `assets/js/_template.js` to `assets/js/<tool-name>.js` and replace
+   the demo model with your calculations.
+6. Add a tile to `index.html` (same markup as the existing tiles) linking to
    `tools/<tool-name>.html`, including descriptive `data-keywords`, a
    `data-category`, and a `data-updated` date.
-6. Test offline by opening `index.html` directly in a browser.
+7. Test offline by opening `index.html` directly in a browser.

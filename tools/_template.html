@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tool: &lt;Tool Name&gt;</title>
+  <meta name="description" content="General template for tool dashboards: one example of every input and output field type. Offline, SI units.">
+  <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+  <title>Tool template: all field types</title>
   <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/css/template.css">
 </head>
@@ -14,28 +16,142 @@
         <img src="../assets/img/logo-navbar.png" alt="Logo" class="navbar-logo">
         <span class="fw-semibold">&larr; Engineering Tools Dashboard</span>
       </a>
-      <button id="theme-toggle" class="btn btn-sm btn-outline-secondary ms-auto" type="button" aria-label="Toggle light/dark theme">🌙</button>
+      <button id="theme-toggle" class="btn btn-sm btn-outline-secondary ms-auto" type="button" aria-label="Toggle light/dark theme">&#127769;</button>
     </div>
   </nav>
 
   <main class="container-xl py-4">
-    <h1 class="h3 mb-1">&lt;Tool Name&gt;</h1>
-    <p class="text-body-secondary small mb-4">Short description of the tool. All inputs and results in SI units.</p>
+    <h1 class="h3 mb-1">Tool template &mdash; all field types</h1>
+    <p class="text-body-secondary small mb-4">Copy this page for a new tool. Left: one input tile per parameter. Right: output fields. Bottom: formulas and sources. Demo model: <code>y(x) = A &middot; sin(2&pi; f x)</code>. All values in SI units.</p>
 
-    <div class="row g-4">
-      <div class="col-lg-4">
+    <div class="tool-layout">
+      <!-- ============ LEFT: INPUT TILES (30%) ============ -->
+      <div class="d-flex flex-column gap-3" id="input-tiles">
+        <form id="tool-inputs" novalidate class="d-flex flex-column gap-3">
+
+          <div class="card">
+            <div class="card-header">Text input</div>
+            <div class="card-body">
+              <label for="in-text" class="form-label">Label</label>
+              <input type="text" class="form-control" id="in-text" value="Demo signal" maxlength="60">
+              <div class="form-text">Free text, e.g. a name or label (used as plot title here).</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Number input</div>
+            <div class="card-body">
+              <label for="in-number" class="form-label">Frequency f (Hz)</label>
+              <input type="number" class="form-control" id="in-number" min="0.01" max="100" step="any" value="1">
+              <div class="form-text">Numeric field with min/max/step validation.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Slider (single value)</div>
+            <div class="card-body">
+              <label for="in-slider" class="form-label">Amplitude A (m) <output id="in-slider-value" class="result-value" for="in-slider">5</output></label>
+              <input type="range" class="form-range" id="in-slider" min="0" max="10" step="0.1" value="5">
+              <div class="form-text">Single-handle range slider with live value readout.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Two-sided slider (min&ndash;max)</div>
+            <div class="card-body">
+              <div class="dual-range mb-2">
+                <div class="range-track"></div>
+                <div class="range-fill" id="range-fill"></div>
+                <input type="range" id="in-range-min" min="0" max="20" step="0.5" value="2" aria-label="Minimum x">
+                <input type="range" id="in-range-max" min="0" max="20" step="0.5" value="12" aria-label="Maximum x">
+              </div>
+              <div class="row g-2">
+                <div class="col-6">
+                  <label for="in-range-min-val" class="form-label small mb-1">x min (m)</label>
+                  <input type="number" class="form-control form-control-sm" id="in-range-min-val" min="0" max="20" step="any" value="2">
+                </div>
+                <div class="col-6">
+                  <label for="in-range-max-val" class="form-label small mb-1">x max (m)</label>
+                  <input type="number" class="form-control form-control-sm" id="in-range-max-val" min="0" max="20" step="any" value="12">
+                </div>
+              </div>
+              <div class="form-text">Slide the handles, or type min/max &mdash; both stay in sync (min &le; max enforced).</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">On/off toggle</div>
+            <div class="card-body">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="in-toggle" checked>
+                <label class="form-check-label" for="in-toggle">Show markers on plot</label>
+              </div>
+              <div class="form-text">Boolean switch.</div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- ============ RIGHT: OUTPUT FIELDS (70%) ============ -->
+      <div class="d-flex flex-column gap-3">
+
         <div class="card">
-          <div class="card-header">Inputs</div>
+          <div class="card-header">Number output</div>
           <div class="card-body">
-            <!-- Input form controls here -->
+            <div class="text-body-secondary small">RMS of y(x) over the selected window</div>
+            <div class="result-value fs-4" id="out-number">&mdash;</div>
           </div>
         </div>
-      </div>
-      <div class="col-lg-8">
+
         <div class="card">
-          <div class="card-header">Results</div>
+          <div class="card-header">Plot / graph (interactive)</div>
           <div class="card-body">
-            <!-- Results and visualisation here -->
+            <div id="out-plot" class="tool-plot"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Table output</div>
+          <div class="card-body table-responsive">
+            <table class="table table-sm table-striped mb-0" id="out-table">
+              <thead>
+                <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Image output (rendered plot)</div>
+          <div class="card-body">
+            <img id="out-image" class="img-fluid border rounded" alt="Rendered plot image" hidden>
+            <p class="text-body-secondary small mb-0" id="out-image-hint">Snapshot of the plot above, generated locally (no network).</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============ BOTTOM: CALCULATIONS & SOURCES (100%) ============ -->
+      <div class="card tool-bottom">
+        <div class="card-header">Calculations used &amp; sources</div>
+        <div class="card-body">
+          <div class="row g-4">
+            <div class="col-lg-7">
+              <h2 class="h6">Equations (demo &mdash; replace with your tool's)</h2>
+              <ul class="formula-list mb-3">
+                <li><code>y(x) = A &middot; sin(2&pi; f x)</code></li>
+                <li><code>y<sub>RMS</sub> = &radic;( (1/(x<sub>max</sub>&minus;x<sub>min</sub>)) &int; y(x)&sup2; dx ) &asymp; &radic;(mean(y&#7522;&sup2;))</code></li>
+              </ul>
+              <p class="small text-body-secondary mb-0">Replace these with the equations of your tool. Keep all inputs and results in SI units.</p>
+            </div>
+            <div class="col-lg-5">
+              <h2 class="h6">Sources</h2>
+              <ul class="small mb-0">
+                <li>Demo signal model &mdash; placeholder; cite your tool's references here (textbooks, standards, papers).</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -47,7 +163,9 @@
   </footer>
 
   <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="../assets/vendor/plotly/plotly-cartesian.min.js"></script>
   <script src="../assets/js/template.js"></script>
   <script src="../assets/js/tools.js"></script>
+  <script src="../assets/js/_template.js"></script>
 </body>
 </html>
