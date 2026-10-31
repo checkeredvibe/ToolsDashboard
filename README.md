@@ -24,12 +24,15 @@ All results use SI units. No external network resources are used — open
   contains one example of every supported field type, wired by
   `assets/js/template-tool.js` (demo model `y = A·sin(2πfx)`):
   - inputs: text, number, single slider, two-sided slider (slide or type
-    min/max, both stay in sync), on/off switch, dropdown select, multi-select
-    checkboxes, date/time picker, color picker, single-choice radio group
+    min/max, both stay in sync, step 0.1), on/off switch, dropdown select,
+    multi-select checkboxes, date/time picker, color picker, single-choice
+    radio group, local .csv file upload (FileReader, never sent anywhere)
   - outputs: number readout, interactive 2D Plotly plot, 3D surface plot
-    (gl3d bundle), contour plot, table, image snapshot (`Plotly.toImage`),
-    copy-results-to-clipboard button, download-plot-as-PNG button
+    (gl3d bundle), table, image snapshot (`Plotly.toImage`), CSV preview
+    table, copy-results-to-clipboard button, download-plot-as-PNG button
     (`Plotly.downloadImage`) — all local, no network
+  - plots redraw only on slider release (`change` event); while dragging,
+    only the cheap number/table update runs (`input` event) to avoid lag
   - bottom row: equations used + sources
 - `assets/css/template.css` — shared styles on top of Bootstrap (brand theme,
   tile grid, navbar).

@@ -63,8 +63,8 @@
               <div class="dual-range mb-2">
                 <div class="range-track"></div>
                 <div class="range-fill" id="range-fill"></div>
-                <input type="range" id="in-range-min" min="0" max="20" step="0.5" value="2" aria-label="Minimum x">
-                <input type="range" id="in-range-max" min="0" max="20" step="0.5" value="12" aria-label="Maximum x">
+                <input type="range" id="in-range-min" min="0" max="20" step="0.1" value="2" aria-label="Minimum x">
+                <input type="range" id="in-range-max" min="0" max="20" step="0.1" value="12" aria-label="Maximum x">
               </div>
               <div class="row g-2">
                 <div class="col-6">
@@ -161,6 +161,15 @@
             </div>
           </div>
 
+          <div class="card">
+            <div class="card-header">Upload .csv file</div>
+            <div class="card-body">
+              <label for="in-csv" class="form-label">CSV file (read locally, never uploaded)</label>
+              <input type="file" class="form-control" id="in-csv" accept=".csv,text/csv">
+              <div class="form-text" id="csv-status">No file loaded.</div>
+            </div>
+          </div>
+
         </form>
       </div>
 
@@ -197,13 +206,6 @@
         </div>
 
         <div class="card">
-          <div class="card-header">Contour plot</div>
-          <div class="card-body">
-            <div id="out-plot-contour" class="tool-plot"></div>
-          </div>
-        </div>
-
-        <div class="card">
           <div class="card-header">Table output</div>
           <div class="card-body table-responsive">
             <table class="table table-sm table-striped mb-0" id="out-table">
@@ -220,6 +222,20 @@
           <div class="card-body">
             <img id="out-image" class="img-fluid border rounded" alt="Rendered plot image" hidden>
             <p class="text-body-secondary small mb-0" id="out-image-hint">Snapshot of the plot above, generated locally (no network).</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Uploaded CSV data</div>
+          <div class="card-body">
+            <p class="text-body-secondary small mb-2" id="csv-summary" hidden></p>
+            <div class="table-responsive" style="max-height: 320px;">
+              <table class="table table-sm table-striped table-hover mb-0" id="out-csv-table" hidden>
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <p class="text-body-secondary small mb-0">Parsed and rendered locally in the browser (FileReader) &mdash; no network, file never leaves your machine.</p>
           </div>
         </div>
 

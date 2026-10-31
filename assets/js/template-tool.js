@@ -25,12 +25,17 @@
     outNumber: $('out-number'),
     plot: $('out-plot'),
     plot3d: $('out-plot-3d'),
-    plotContour: $('out-plot-contour'),
     tableBody: $('out-table').querySelector('tbody'),
     outImage: $('out-image'),
     btnCopy: $('btn-copy-results'),
-    btnPng: $('btn-download-png')
+    btnPng: $('btn-download-png'),
+    csv: $('in-csv'),
+    csvStatus: $('csv-status'),
+    csvSummary: $('csv-summary'),
+    csvTable: $('out-csv-table')
   };
+
+  let csvData = null; // { headers: string[], rows: string[][] }
 
   const RANGE_MIN = 0;
   const RANGE_MAX = 20;
@@ -138,24 +143,24 @@
 
   const plotConfig = { responsive: true, displaylogo: false };
 
-  function update() {
-    const p = readInputs();
-    syncDualRange();
-    if (!Number.isFinite(p.f) || p.f <= 0 || !Number.isFinite(p.A) || p.xMax <= p.xMin) {
-      els.outNumber.textContent = '—';
-      Plotly.purge(els.plot);
-      Plotly.purge(els.plot3d);
-      Plotly.purge(els.plotContour);
-      els.tableBody.innerHTML = '';
-      els.outImage.hidden = true;
-      return;
-    }
-    const res = demoModel(p);
-    const grid = surfaceGrid(p);
-    setWindow(p.xMin, p.xMax, 'model');
-    const colors = themeColors();
+  function renderTable(p, res) {
+    const num = (v) => String(Number(v.toPrecision(4)));
+    els.tableBody.innerHTML = [
+      ['Amplitude A', num(p.A), 'm'],
+      ['Frequency f', num(p.f), 'Hz'],
+      ['Waveform', p.waveform, '—'],
+      ['Window x', num(p.xMin) + ' … ' + num(p.xMax), 'm'],
+      ['y RMS', num(res.yRms), 'm'],
+      ['Markers', p.markers ? 'on' : 'off', '—'],
+      ['Checkboxes', p.checks.length ? p.checks.join(', ') : 'none', '—'],
+      ['Datetime', p.datetime || 'not set', '—'],
+      ['Line color', p.color, '—'],
+      ['Radio', p.radio || 'none', '—']
+    ].map(r => '<tr><td>' + r[0] + '</td><td class="result-value">' + r[1] + '</td><td>' + r[2] + '</td></tr>').join('');
+  }
 
-    els.outNumber.textContent = SI.format(res.yRms, 'm');
+  function renderPlots(p, res, grid) {
+    const colors = themeColors();
 
     Plotly.react(els.plot, [{
       x: res.xs,
@@ -191,41 +196,45 @@
       }
     }, plotConfig);
 
-    Plotly.react(els.plotContour, [{
-      type: 'contour',
-      x: grid.xs,
-      y: grid.ys,
-      z: grid.z,
-      colorscale: 'Viridis',
-      contours: { coloring: 'heatmap' }
-    }], {
-      title: 'Contour of z(x, y)',
-      margin: { t: 40, r: 20, b: 45, l: 60 },
-      paper_bgcolor: colors.paper,
-      plot_bgcolor: colors.paper,
-      font: { color: colors.font },
-      xaxis: { title: 'x (m)', gridcolor: colors.grid },
-      yaxis: { title: 'y (m)', gridcolor: colors.grid }
-    }, plotConfig);
-
-    const num = (v) => String(Number(v.toPrecision(4)));
-    els.tableBody.innerHTML = [
-      ['Amplitude A', num(p.A), 'm'],
-      ['Frequency f', num(p.f), 'Hz'],
-      ['Waveform', p.waveform, '—'],
-      ['Window x', num(p.xMin) + ' … ' + num(p.xMax), 'm'],
-      ['y RMS', num(res.yRms), 'm'],
-      ['Markers', p.markers ? 'on' : 'off', '—'],
-      ['Checkboxes', p.checks.length ? p.checks.join(', ') : 'none', '—'],
-      ['Datetime', p.datetime || 'not set', '—'],
-      ['Line color', p.color, '—'],
-      ['Radio', p.radio || 'none', '—']
-    ].map(r => '<tr><td>' + r[0] + '</td><td class="result-value">' + r[1] + '</td><td>' + r[2] + '</td></tr>').join('');
-
     Plotly.toImage(els.plot, { format: 'png', width: 900, height: 440 }).then((url) => {
       els.outImage.src = url;
       els.outImage.hidden = false;
     });
+  }
+
+  // Light update while dragging sliders: cheap text/table only, no plot redraw
+  function updateLight() {
+    const p = readInputs();
+    syncDualRange();
+    if (!Number.isFinite(p.f) || p.f <= 0 || !Number.isFinite(p.A) || p.xMax <= p.xMin) {
+      els.outNumber.textContent = '—';
+      els.tableBody.innerHTML = '';
+      return;
+    }
+    const res = demoModel(p);
+    setWindow(p.xMin, p.xMax, 'model');
+    els.outNumber.textContent = SI.format(res.yRms, 'm');
+    renderTable(p, res);
+  }
+
+  // Full update (on slider release / any other input): plots + image too
+  function update() {
+    const p = readInputs();
+    syncDualRange();
+    if (!Number.isFinite(p.f) || p.f <= 0 || !Number.isFinite(p.A) || p.xMax <= p.xMin) {
+      els.outNumber.textContent = '—';
+      Plotly.purge(els.plot);
+      Plotly.purge(els.plot3d);
+      els.tableBody.innerHTML = '';
+      els.outImage.hidden = true;
+      return;
+    }
+    const res = demoModel(p);
+    const grid = surfaceGrid(p);
+    setWindow(p.xMin, p.xMax, 'model');
+    els.outNumber.textContent = SI.format(res.yRms, 'm');
+    renderTable(p, res);
+    renderPlots(p, res, grid);
   }
 
   function resultsText() {
@@ -249,18 +258,71 @@
     Plotly.downloadImage(els.plot, { format: 'png', width: 1200, height: 600, filename: 'plot' });
   });
 
+  // Sliders: 'input' fires continuously while dragging -> light update only;
+  // 'change' fires on release -> full update with plot redraws (no lag).
   els.slider.addEventListener('input', () => {
     els.sliderValue.textContent = els.slider.value;
-    update();
+    updateLight();
   });
-  els.rangeMin.addEventListener('input', () => setWindow(SI.parse(els.rangeMin.value), SI.parse(els.rangeMax.value), 'min-slider'));
-  els.rangeMax.addEventListener('input', () => setWindow(SI.parse(els.rangeMin.value), SI.parse(els.rangeMax.value), 'max-slider'));
-  els.rangeMinVal.addEventListener('input', () => setWindow(SI.parse(els.rangeMinVal.value), SI.parse(els.rangeMaxVal.value), 'typed'));
-  els.rangeMaxVal.addEventListener('input', () => setWindow(SI.parse(els.rangeMinVal.value), SI.parse(els.rangeMaxVal.value), 'typed'));
-  ['in-range-min', 'in-range-max', 'in-range-min-val', 'in-range-max-val'].forEach(id => $(id).addEventListener('input', update));
+  els.slider.addEventListener('change', update);
+  els.rangeMin.addEventListener('input', () => { setWindow(SI.parse(els.rangeMin.value), SI.parse(els.rangeMax.value), 'min-slider'); updateLight(); });
+  els.rangeMax.addEventListener('input', () => { setWindow(SI.parse(els.rangeMin.value), SI.parse(els.rangeMax.value), 'max-slider'); updateLight(); });
+  els.rangeMin.addEventListener('change', update);
+  els.rangeMax.addEventListener('change', update);
+  els.rangeMinVal.addEventListener('input', () => { setWindow(SI.parse(els.rangeMinVal.value), SI.parse(els.rangeMaxVal.value), 'typed'); updateLight(); });
+  els.rangeMaxVal.addEventListener('input', () => { setWindow(SI.parse(els.rangeMinVal.value), SI.parse(els.rangeMaxVal.value), 'typed'); updateLight(); });
   ['in-text', 'in-number', 'in-toggle', 'in-select', 'in-datetime', 'in-color'].forEach(id => $(id).addEventListener('input', update));
   els.checks.forEach(c => c.addEventListener('change', update));
   els.radios.forEach(r => r.addEventListener('change', update));
+
+  // CSV upload: parsed locally with FileReader, rendered into a table
+  els.csv.addEventListener('change', () => {
+    const file = els.csv.files && els.csv.files[0];
+    if (!file) {
+      csvData = null;
+      els.csvStatus.textContent = 'No file loaded.';
+      els.csvSummary.hidden = true;
+      els.csvTable.hidden = true;
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const text = String(reader.result);
+        const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+        if (lines.length === 0) throw new Error('empty');
+        const parseRow = (l) => l.split(',').map(c => c.trim());
+        csvData = { headers: parseRow(lines[0]), rows: lines.slice(1).map(parseRow) };
+        els.csvStatus.textContent = file.name + ' — ' + csvData.rows.length + ' data rows, ' + csvData.headers.length + ' columns.';
+        renderCsvTable();
+      } catch (e) {
+        csvData = null;
+        els.csvStatus.textContent = 'Could not parse "' + file.name + '" as CSV.';
+        els.csvSummary.hidden = true;
+        els.csvTable.hidden = true;
+      }
+    };
+    reader.onerror = () => {
+      csvData = null;
+      els.csvStatus.textContent = 'Could not read "' + file.name + '".';
+    };
+    reader.readAsText(file);
+  });
+
+  function renderCsvTable() {
+    if (!csvData) return;
+    const esc = (s) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const thead = els.csvTable.querySelector('thead');
+    const tbody = els.csvTable.querySelector('tbody');
+    thead.innerHTML = '<tr>' + csvData.headers.map(h => '<th>' + esc(h) + '</th>').join('') + '</tr>';
+    const MAX_ROWS = 200;
+    tbody.innerHTML = csvData.rows.slice(0, MAX_ROWS)
+      .map(r => '<tr>' + r.map(c => '<td>' + esc(c) + '</td>').join('') + '</tr>').join('');
+    els.csvSummary.textContent = csvData.rows.length + ' rows × ' + csvData.headers.length + ' columns' +
+      (csvData.rows.length > MAX_ROWS ? ' (showing first ' + MAX_ROWS + ')' : '');
+    els.csvSummary.hidden = false;
+    els.csvTable.hidden = false;
+  }
 
   new MutationObserver(() => { if (els.plot.data) update(); })
     .observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
