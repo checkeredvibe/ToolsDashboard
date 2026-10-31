@@ -65,8 +65,8 @@ All results use SI units. No external network resources are used — open
   terms a user would actually type (at least five keywords per tool).
 - Tile `data-category` drives the category filter chips; `data-updated`
   (ISO date) drives the "Recently added" sort.
-- Footer: "This dashboard is partially created by Vibe-coding. Make sure you
-  validate your calculations." plus a bottom-left "Last updated on: <date>
+- Footer: "TG2026 - Make sure you validate your calculations before using them
+  for professional purposes." plus a bottom-left "Last updated on: <date>
   <HH:MM:SS>" timestamp, filled automatically by `template.js` from
   `document.lastModified` (served file's last-modified time on Pages, file
   mtime via `file://`). Keep the `<span id="last-updated">` in every page
