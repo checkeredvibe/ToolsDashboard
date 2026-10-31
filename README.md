@@ -78,21 +78,23 @@ All results use SI units. No external network resources are used — open
 
 ## New-tool recipe
 
-1. **Ask the engineer first.** Before writing any code, explicitly ask the
-   engineer building the tool:
-   - **what the tool should do** (its purpose and the physics/engineering
-     problem it solves);
-   - which **input parameters** the tool needs (names, SI units, min/max);
-   - **default values** for every input parameter (and why those defaults);
-   - which **outputs** it must show (numbers, plots, tables, images, …);
-   - which **field types** to use for each input and output (text, number,
-     single slider, two-sided slider, toggle, dropdown, checkboxes,
-     date/time, color, radio, CSV upload — and number/2D plot/3D plot/
-     table/image/CSV preview on the output side), as listed in
-     `tools/template.html` (2D line plot, scatter plot, 3D surface, …);
-   - whether the engineer has **specific references** (textbooks, standards,
-     papers, norms) that must be used for the calculations — these go into
-     the bottom "Calculations used & sources" card.
+1. **Ask the engineer first — in two rounds, not all at once.** Do not dump
+   every question in one go; ask in stages and use the answers before asking
+   the next round:
+   - **Round 1 — scope and sources only:** ask **what the tool should do**
+     (its purpose and the physics/engineering problem it solves) and whether
+     the engineer has **specific references** (textbooks, standards, papers,
+     norms) that must be used for the calculations — these go into the
+     bottom "Calculations used & sources" card. Process the answers (pick the
+     relevant equations/sources) before continuing.
+   - **Round 2 — parameters and fields:** only then ask which **input
+     parameters** the tool needs (names, SI units, min/max), the **default
+     values** for every input parameter (and why), which **outputs** it must
+     show (numbers, plots, tables, images, …), and which **field types** to
+     use for each input and output (text, number, single slider, two-sided
+     slider, toggle, dropdown, checkboxes, date/time, color, radio, CSV
+     upload — and number/line plot/scatter/3D plot/table/image/CSV preview
+     on the output side), as listed in `tools/template.html`.
    Do not guess these — the engineer decides.
 2. Copy `tools/template.html` to `tools/<tool-name>.html` (the template is
    already wired with one example of every field type).
