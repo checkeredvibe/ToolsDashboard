@@ -24,9 +24,12 @@ All results use SI units. No external network resources are used — open
   contains one example of every supported field type, wired by
   `assets/js/template-tool.js` (demo model `y = A·sin(2πfx)`):
   - inputs: text, number, single slider, two-sided slider (slide or type
-    min/max, both stay in sync), on/off switch
-  - outputs: number readout, interactive Plotly plot, table, image snapshot
-    (`Plotly.toImage`, no network)
+    min/max, both stay in sync), on/off switch, dropdown select, multi-select
+    checkboxes, date/time picker, color picker, single-choice radio group
+  - outputs: number readout, interactive 2D Plotly plot, 3D surface plot
+    (gl3d bundle), contour plot, table, image snapshot (`Plotly.toImage`),
+    copy-results-to-clipboard button, download-plot-as-PNG button
+    (`Plotly.downloadImage`) — all local, no network
   - bottom row: equations used + sources
 - `assets/css/template.css` — shared styles on top of Bootstrap (brand theme,
   tile grid, navbar).
@@ -71,9 +74,10 @@ All results use SI units. No external network resources are used — open
    already wired with one example of every field type).
 2. Update the `<title>`, heading, and description; keep the shared
    `../assets/...` relative links (Bootstrap, template CSS/JS, tools.js).
-3. Build your tool inside the `.tool-layout` grid: input cards (left,
-   30%), output cards with plots/tables (right, 70%), and a `.tool-bottom`
-   card (100% width) listing the equations used and their sources.
+3. Build your tool inside the `.tool-layout` grid: "Input" header + input
+   cards (left, 30%), "Output" header + output cards with plots/tables
+   (right, 70%), and a `.tool-bottom` card (100% width) listing the
+   equations used and their sources.
 4. Use the `SI.format` / `SI.parse` helpers from `tools.js` for all values;
    all inputs and results in SI units. Load
    `../assets/vendor/plotly/plotly-cartesian.min.js` for 2D plots and/or

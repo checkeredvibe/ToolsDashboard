@@ -27,6 +27,7 @@
     <div class="tool-layout">
       <!-- ============ LEFT: INPUT TILES (30%) ============ -->
       <div class="d-flex flex-column gap-3" id="input-tiles">
+        <h2 class="tool-col-header mb-0">Input</h2>
         <form id="tool-inputs" novalidate class="d-flex flex-column gap-3">
 
           <div class="card">
@@ -90,11 +91,82 @@
             </div>
           </div>
 
+          <div class="card">
+            <div class="card-header">Dropdown menu</div>
+            <div class="card-body">
+              <label for="in-select" class="form-label">Waveform</label>
+              <select class="form-select" id="in-select">
+                <option value="sine" selected>Sine</option>
+                <option value="square">Square</option>
+                <option value="triangle">Triangle</option>
+                <option value="sawtooth">Sawtooth</option>
+              </select>
+              <div class="form-text">Single-choice select.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Checkboxes (multi-select)</div>
+            <div class="card-body">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="in-check-1" checked>
+                <label class="form-check-label" for="in-check-1">Option one</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="in-check-2">
+                <label class="form-check-label" for="in-check-2">Option two</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="in-check-3">
+                <label class="form-check-label" for="in-check-3">Option three</label>
+              </div>
+              <div class="form-text">Any number of boxes can be checked.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Date/time picker</div>
+            <div class="card-body">
+              <label for="in-datetime" class="form-label">Timestamp</label>
+              <input type="datetime-local" class="form-control" id="in-datetime">
+              <div class="form-text">Local date and time.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Color picker</div>
+            <div class="card-body">
+              <label for="in-color" class="form-label">Line color</label>
+              <input type="color" class="form-control form-control-color" id="in-color" value="#272974" title="Pick a color">
+              <div class="form-text">Hex color, e.g. for plot styling.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Radio buttons (single choice)</div>
+            <div class="card-body">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="in-radio" id="in-radio-1" value="a" checked>
+                <label class="form-check-label" for="in-radio-1">Choice A</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="in-radio" id="in-radio-2" value="b">
+                <label class="form-check-label" for="in-radio-2">Choice B</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="in-radio" id="in-radio-3" value="c">
+                <label class="form-check-label" for="in-radio-3">Choice C</label>
+              </div>
+              <div class="form-text">Only one radio in the group can be selected.</div>
+            </div>
+          </div>
+
         </form>
       </div>
 
       <!-- ============ RIGHT: OUTPUT FIELDS (70%) ============ -->
       <div class="d-flex flex-column gap-3">
+        <h2 class="tool-col-header mb-0">Output</h2>
 
         <div class="card">
           <div class="card-header">Number output</div>
@@ -105,9 +177,29 @@
         </div>
 
         <div class="card">
-          <div class="card-header">Plot / graph (interactive)</div>
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span>Plot / graph (interactive)</span>
+            <span class="d-flex gap-2">
+              <button type="button" class="btn btn-sm btn-outline-primary" id="btn-copy-results">&#128203; Copy results</button>
+              <button type="button" class="btn btn-sm btn-outline-primary" id="btn-download-png">&#11015;&#65039; Download PNG</button>
+            </span>
+          </div>
           <div class="card-body">
             <div id="out-plot" class="tool-plot"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">3D surface plot (WebGL)</div>
+          <div class="card-body">
+            <div id="out-plot-3d" class="tool-plot"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Contour plot</div>
+          <div class="card-body">
+            <div id="out-plot-contour" class="tool-plot"></div>
           </div>
         </div>
 
@@ -165,6 +257,7 @@
 
   <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
   <script src="../assets/vendor/plotly/plotly-cartesian.min.js"></script>
+  <script src="../assets/vendor/plotly/plotly-gl3d.min.js"></script>
   <script src="../assets/js/template.js"></script>
   <script src="../assets/js/tools.js"></script>
   <script src="../assets/js/template-tool.js"></script>
