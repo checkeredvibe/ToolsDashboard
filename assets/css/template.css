@@ -191,6 +191,27 @@
   color: #c7c8f0;
 }
 
+/* --- Footer: centered text with last-updated date pinned bottom-left --- */
+.dashboard-footer {
+  position: relative;
+}
+
+.dashboard-footer .last-updated {
+  position: absolute;
+  left: 1rem;
+  bottom: 0.75rem;
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+@media (max-width: 575.98px) {
+  .dashboard-footer .last-updated {
+    position: static;
+    display: block;
+    margin-top: 0.25rem;
+  }
+}
+
 /* --- Tool page layout: 30% inputs / 70% results, full-width bottom row --- */
 .tool-layout {
   display: grid;

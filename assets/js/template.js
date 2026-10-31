@@ -8,6 +8,16 @@
   const storedTheme = localStorage.getItem(THEME_KEY);
   if (storedTheme) root.dataset.bsTheme = storedTheme;
 
+  function renderLastUpdated() {
+    const el = document.getElementById('last-updated');
+    if (!el) return;
+    const d = new Date(document.lastModified);
+    el.textContent = Number.isNaN(d.getTime())
+      ? 'Last updated on: unknown'
+      : 'Last updated on: ' + d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+  renderLastUpdated();
+
   const toggleBtn = document.getElementById('theme-toggle');
   if (!toggleBtn) return;
 
