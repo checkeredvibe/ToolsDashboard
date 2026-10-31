@@ -77,21 +77,32 @@ All results use SI units. No external network resources are used — open
 
 ## New-tool recipe
 
-1. Copy `tools/template.html` to `tools/<tool-name>.html` (the template is
+1. **Ask the engineer first.** Before writing any code, explicitly ask the
+   engineer building the tool:
+   - which **input parameters** the tool needs (names, SI units, sensible
+     default/min/max values);
+   - which **outputs** it must show (numbers, plots, tables, images, …);
+   - which **field types** to use for each input and output (text, number,
+     single slider, two-sided slider, toggle, dropdown, checkboxes,
+     date/time, color, radio, CSV upload — and number/2D plot/3D plot/
+     table/image/CSV preview on the output side), as listed in
+     `tools/template.html`.
+   Do not guess these — the engineer decides.
+2. Copy `tools/template.html` to `tools/<tool-name>.html` (the template is
    already wired with one example of every field type).
-2. Update the `<title>`, heading, and description; keep the shared
+3. Update the `<title>`, heading, and description; keep the shared
    `../assets/...` relative links (Bootstrap, template CSS/JS, tools.js).
-3. Build your tool inside the `.tool-layout` grid: "Input" header + input
+4. Build your tool inside the `.tool-layout` grid: "Input" header + input
    cards (left, 30%), "Output" header + output cards with plots/tables
    (right, 70%), and a `.tool-bottom` card (100% width) listing the
    equations used and their sources.
-4. Use the `SI.format` / `SI.parse` helpers from `tools.js` for all values;
+5. Use the `SI.format` / `SI.parse` helpers from `tools.js` for all values;
    all inputs and results in SI units. Load
    `../assets/vendor/plotly/plotly-cartesian.min.js` for 2D plots and/or
    `../assets/vendor/plotly/plotly-gl3d.min.js` for 3D plots.
-5. Copy `assets/js/template-tool.js` to `assets/js/<tool-name>.js` and replace
+6. Copy `assets/js/template-tool.js` to `assets/js/<tool-name>.js` and replace
    the demo model with your calculations.
-6. Add a tile to `index.html` (same markup as the existing tiles) linking to
+7. Add a tile to `index.html` (same markup as the existing tiles) linking to
    `tools/<tool-name>.html`, including descriptive `data-keywords`, a
    `data-category`, and a `data-updated` date.
-7. Test offline by opening `index.html` directly in a browser.
+8. Test offline by opening `index.html` directly in a browser.
