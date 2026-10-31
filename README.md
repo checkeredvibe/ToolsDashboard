@@ -20,9 +20,9 @@ All results use SI units. No external network resources are used — open
   `data-updated`), and shareable filter state in the URL hash
   (`index.html#q=...&cat=...&sort=...`).
 - `tools/<tool-name>.html` — one standalone HTML file per tool.
-- `tools/_template.html` — general copy-paste starter for new tool pages. It
+- `tools/template.html` — general copy-paste starter for new tool pages. It
   contains one example of every supported field type, wired by
-  `assets/js/_template.js` (demo model `y = A·sin(2πfx)`):
+  `assets/js/template-tool.js` (demo model `y = A·sin(2πfx)`):
   - inputs: text, number, single slider, two-sided slider (slide or type
     min/max, both stay in sync), on/off switch
   - outputs: number readout, interactive Plotly plot, table, image snapshot
@@ -57,10 +57,13 @@ All results use SI units. No external network resources are used — open
   (ISO date) drives the "Recently added" sort.
 - Footer: "This dashboard is partially created by Vibe-coding. Make sure you
   validate your calculations."
+- GitHub Pages never serves files/directories starting with `_` (reserved for
+  Jekyll), even in legacy branch mode — so the tool template is
+  `tools/template.html` + `assets/js/template-tool.js`, not `_template.*`.
 
 ## New-tool recipe
 
-1. Copy `tools/_template.html` to `tools/<tool-name>.html` (the template is
+1. Copy `tools/template.html` to `tools/<tool-name>.html` (the template is
    already wired with one example of every field type).
 2. Update the `<title>`, heading, and description; keep the shared
    `../assets/...` relative links (Bootstrap, template CSS/JS, tools.js).
@@ -71,7 +74,7 @@ All results use SI units. No external network resources are used — open
    all inputs and results in SI units. Load
    `../assets/vendor/plotly/plotly-cartesian.min.js` for 2D plots and/or
    `../assets/vendor/plotly/plotly-gl3d.min.js` for 3D plots.
-5. Copy `assets/js/_template.js` to `assets/js/<tool-name>.js` and replace
+5. Copy `assets/js/template-tool.js` to `assets/js/<tool-name>.js` and replace
    the demo model with your calculations.
 6. Add a tile to `index.html` (same markup as the existing tiles) linking to
    `tools/<tool-name>.html`, including descriptive `data-keywords`, a

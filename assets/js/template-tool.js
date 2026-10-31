@@ -1,4 +1,4 @@
-// Demo wiring for tools/_template.html: shows how each input field type
+// Demo wiring for tools/template.html: shows how each input field type
 // feeds the output fields. Copy and replace the demo model with your own.
 
 (function () {
