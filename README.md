@@ -102,13 +102,16 @@ All results use SI units. No external network resources are used — open
    cards (left, 30%), "Output" header + output cards with plots/tables
    (right, 70%), and a `.tool-bottom` card (100% width) listing the
    equations used and their sources.
-5. Use the `SI.format` / `SI.parse` helpers from `tools.js` for all values;
+5. Slider inputs must stay in sync with a direct number/text entry for the
+   same value (type exactly, or slide); plots redraw on slider release
+   (`change`), cheap outputs update live (`input`).
+6. Use the `SI.format` / `SI.parse` helpers from `tools.js` for all values;
    all inputs and results in SI units. Load
    `../assets/vendor/plotly/plotly-cartesian.min.js` for 2D plots and/or
    `../assets/vendor/plotly/plotly-gl3d.min.js` for 3D plots.
-6. Copy `assets/js/template-tool.js` to `assets/js/<tool-name>.js` and replace
+7. Copy `assets/js/template-tool.js` to `assets/js/<tool-name>.js` and replace
    the demo model with your calculations.
-7. Add a tile to `index.html` (same markup as the existing tiles) linking to
-   `tools/<tool-name>.html`, including descriptive `data-keywords`, a
-   `data-category`, and a `data-updated` date.
-8. Test offline by opening `index.html` directly in a browser.
+8. Add a tile to `index.html` (same markup as the existing tiles) linking to
+   `tools/<tool-name>.html`, including descriptive `data-keywords` (at least
+   five), a `data-category`, and a `data-updated` date.
+9. Test offline by opening `index.html` directly in a browser.
