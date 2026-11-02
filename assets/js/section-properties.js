@@ -80,10 +80,19 @@
     return Number(v.toPrecision(4));
   }
 
+  // Output number formatting: >999 or <0.001 -> scientific notation, max 2 decimals
+  function fmtVal(v) {
+    if (!Number.isFinite(v)) return '—';
+    if (v === 0) return '0';
+    const a = Math.abs(v);
+    if (a > 999 || a < 0.001) return v.toExponential(2);
+    return String(Number(v.toPrecision(4)));
+  }
+
   // Dual-unit readout: value is in the mm-based unit, also show the SI (m-based) value
   function dual(value, mmUnit, mUnit, mmToM) {
     if (!Number.isFinite(value)) return '—';
-    return SI.format(value, mmUnit) + '  (' + SI.format(value * mmToM, mUnit) + ')';
+    return fmtVal(value) + ' ' + mmUnit + '  (' + fmtVal(value * mmToM) + ' ' + mUnit + ')';
   }
 
   function buildDimControls(sectionKey) {
@@ -209,6 +218,22 @@
     return { A, yc, Ix, Iy, Wx, Wy, halfW, h };
   }
 
+  // Bulb profile: catalogue values from EN 10067 (no calculation).
+  // Returns mm-based values; Iy/Wy are not part of the standard -> null.
+  function catalogue(key, p) {
+    if (key !== 'bulb') return null;
+    return {
+      A: p.a * 100,            // cm2 -> mm2
+      yc: p.dx * 10,            // cm  -> mm (centroid from the web back, y=0)
+      Ix: p.ix * 1e4,           // cm4 -> mm4
+      Iy: null,
+      Wx: p.wx * 1e3,           // cm3 -> mm3
+      Wy: null,
+      halfW: p.rb,
+      h: p.h
+    };
+  }
+
   function circlePath(cx, cy, r, n) {
     const pts = [];
     for (let i = 0; i <= n; i++) {
@@ -312,13 +337,13 @@
     els.out.area.textContent = dual(res.A, 'mm²', 'm²', 1e-6);
     els.out.yc.textContent = dual(res.yc, 'mm', 'm', 1e-3);
     els.out.ix.textContent = dual(res.Ix, 'mm⁴', 'm⁴', 1e-12);
-    els.out.iy.textContent = dual(res.Iy, 'mm⁴', 'm⁴', 1e-12);
+    els.out.iy.textContent = Number.isFinite(res.Iy) ? dual(res.Iy, 'mm⁴', 'm⁴', 1e-12) : 'n/a (EN 10067)';
     els.out.wx.textContent = dual(res.Wx, 'mm³', 'm³', 1e-9);
-    els.out.wy.textContent = dual(res.Wy, 'mm³', 'm³', 1e-9);
+    els.out.wy.textContent = Number.isFinite(res.Wy) ? dual(res.Wy, 'mm³', 'm³', 1e-9) : 'n/a (EN 10067)';
   }
 
-  function renderTable(key, d, res) {
-    const num = (v) => String(Number(v.toPrecision(4)));
+  function renderTable(key, d, res, bulbName) {
+    const num = fmtVal;
     const spec = SECTIONS[key];
     const dimRowsOut = spec.predefined
       ? [
@@ -328,44 +353,53 @@
         ]
       : spec.dims.map(dd => [dd.label, num(d[dd.key]), 'mm']);
     const sectionName = spec.predefined
-      ? spec.label + ' — ' + BULB_PROFILES[Number(els.bulbSelect.value) || 0].name
+      ? spec.label + ' — ' + (bulbName || BULB_PROFILES[Number(els.bulbSelect.value) || 0].name) + ' (EN 10067 catalogue)'
       : spec.label;
+    const na = 'n/a (not in EN 10067)';
     const rows = [
       ['Section', sectionName, '—'],
       ...dimRowsOut,
       ['Area A', num(res.A), 'mm² = ' + num(res.A * 1e-6) + ' m²'],
       ['Centroid ȳ', num(res.yc), 'mm = ' + num(res.yc * 1e-3) + ' m'],
       ['I_x (strong)', num(res.Ix), 'mm⁴ = ' + num(res.Ix * 1e-12) + ' m⁴'],
-      ['I_y (weak)', num(res.Iy), 'mm⁴ = ' + num(res.Iy * 1e-12) + ' m⁴'],
+      ['I_y (weak)', Number.isFinite(res.Iy) ? num(res.Iy) : na, Number.isFinite(res.Iy) ? 'mm⁴ = ' + num(res.Iy * 1e-12) + ' m⁴' : '—'],
       ['W_x (strong)', num(res.Wx), 'mm³ = ' + num(res.Wx * 1e-9) + ' m³'],
-      ['W_y (weak)', num(res.Wy), 'mm³ = ' + num(res.Wy * 1e-9) + ' m³']
+      ['W_y (weak)', Number.isFinite(res.Wy) ? num(res.Wy) : na, Number.isFinite(res.Wy) ? 'mm³ = ' + num(res.Wy * 1e-9) + ' m³' : '—']
     ];
     els.tableBody.innerHTML = rows
       .map(r => '<tr><td>' + r[0] + '</td><td class="result-value">' + r[1] + '</td><td>' + r[2] + '</td></tr>').join('');
   }
 
+  function resultsFor(key) {
+    const d = readDims(key);
+    if (!valid(key, d)) return null;
+    if (key === 'bulb') {
+      const p = BULB_PROFILES[Number(els.bulbSelect.value) || 0];
+      return { d, res: catalogue(key, p), bulbName: p.name };
+    }
+    return { d, res: compute(key, d) };
+  }
+
   function updateLight() {
     const key = els.select.value;
-    const d = readDims(key);
-    if (!valid(key, d)) { els.tableBody.innerHTML = ''; return; }
-    const res = compute(key, d);
-    renderNumbers(res);
-    renderTable(key, d, res);
+    const r = resultsFor(key);
+    if (!r) { els.tableBody.innerHTML = ''; return; }
+    renderNumbers(r.res);
+    renderTable(key, r.d, r.res, r.bulbName);
   }
 
   function update() {
     const key = els.select.value;
-    const d = readDims(key);
-    if (!valid(key, d)) {
+    const r = resultsFor(key);
+    if (!r) {
       Object.values(els.out).forEach(el => { el.textContent = '—'; });
       Plotly.purge(els.plot);
       els.tableBody.innerHTML = '';
       return;
     }
-    const res = compute(key, d);
-    renderNumbers(res);
-    renderTable(key, d, res);
-    renderPlot(key, d, res);
+    renderNumbers(r.res);
+    renderTable(key, r.d, r.res, r.bulbName);
+    if (key !== 'bulb') renderPlot(key, r.d, r.res);
   }
 
   els.select.addEventListener('change', () => { buildDimControls(els.select.value); update(); });
