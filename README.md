@@ -71,10 +71,13 @@ All results use SI units. No external network resources are used — open
   (ISO date) drives the "Recently added" sort.
 - Footer: "TG2026 - Make sure you validate your calculations before using them
   for professional purposes." plus a bottom-left "Last updated on: <date>
-  <HH:MM:SS>" timestamp, filled automatically by `template.js` from
-  `document.lastModified` (served file's last-modified time on Pages, file
-  mtime via `file://`). Keep the `<span id="last-updated">` in every page
-  footer.
+  <HH:MM:SS>" timestamp, filled by `template.js` from the page's
+  `<meta name="last-updated" content="ISO-timestamp">` tag (per-page last
+  edit time — on GitHub Pages `document.lastModified` is the deploy time,
+  identical on all pages). Falls back to `document.lastModified` when the meta
+  tag is absent (per-file mtime via `file://`). Keep both the meta tag and the
+  `<span id="last-updated">` in every page; bump the meta content when you
+  edit a page.
 - GitHub Pages never serves files/directories starting with `_` (reserved for
   Jekyll), even in legacy branch mode — so the tool template is
   `tools/template.html` + `assets/js/template-tool.js`, not `_template.*`.
