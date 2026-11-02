@@ -16,7 +16,8 @@
     // deploy time, identical for all pages. Fall back to document.lastModified
     // (per-file mtime via file://).
     const meta = document.querySelector('meta[name="last-updated"]');
-    const d = new Date(meta && meta.content ? meta.content : document.lastModified);
+    let d = new Date(meta && meta.content ? meta.content : '');
+    if (Number.isNaN(d.getTime())) d = new Date(document.lastModified);
     if (Number.isNaN(d.getTime())) {
       el.textContent = 'Last updated on: unknown';
       return;
