@@ -26,7 +26,7 @@
       label: 'Flat bar',
       dims: [
         { key: 'h', label: 'Height h', def: 100, min: DIM_MIN, max: DIM_MAX },
-        { key: 'b', label: 'Width b', def: 10, min: DIM_MIN, max: DIM_MAX }
+        { key: 'b', label: 'Thickness', def: 10, min: 1, max: 50 }
       ]
     },
     bulb: {
@@ -70,8 +70,7 @@
       area: $('out-area'), yc: $('out-yc'), ix: $('out-ix'),
       iy: $('out-iy'), wx: $('out-wx'), wy: $('out-wy')
     },
-    plot: $('out-plot'),
-    tableBody: $('out-table').querySelector('tbody')
+    plot: $('out-plot')
   };
 
   let dimRows = [];
@@ -342,34 +341,6 @@
     els.out.wy.textContent = Number.isFinite(res.Wy) ? dual(res.Wy, 'mm³', 'm³', 1e-9) : 'n/a (EN 10067)';
   }
 
-  function renderTable(key, d, res, bulbName) {
-    const num = fmtVal;
-    const spec = SECTIONS[key];
-    const dimRowsOut = spec.predefined
-      ? [
-          ['Height h', num(d.h), 'mm'],
-          ['Web thickness t', num(d.t), 'mm'],
-          ['Bulb radius r_b', num(d.rb), 'mm']
-        ]
-      : spec.dims.map(dd => [dd.label, num(d[dd.key]), 'mm']);
-    const sectionName = spec.predefined
-      ? spec.label + ' — ' + (bulbName || BULB_PROFILES[Number(els.bulbSelect.value) || 0].name) + ' (EN 10067 catalogue)'
-      : spec.label;
-    const na = 'n/a (not in EN 10067)';
-    const rows = [
-      ['Section', sectionName, '—'],
-      ...dimRowsOut,
-      ['Area A', num(res.A), 'mm² = ' + num(res.A * 1e-6) + ' m²'],
-      ['Centroid ȳ', num(res.yc), 'mm = ' + num(res.yc * 1e-3) + ' m'],
-      ['I_x (strong)', num(res.Ix), 'mm⁴ = ' + num(res.Ix * 1e-12) + ' m⁴'],
-      ['I_y (weak)', Number.isFinite(res.Iy) ? num(res.Iy) : na, Number.isFinite(res.Iy) ? 'mm⁴ = ' + num(res.Iy * 1e-12) + ' m⁴' : '—'],
-      ['W_x (strong)', num(res.Wx), 'mm³ = ' + num(res.Wx * 1e-9) + ' m³'],
-      ['W_y (weak)', Number.isFinite(res.Wy) ? num(res.Wy) : na, Number.isFinite(res.Wy) ? 'mm³ = ' + num(res.Wy * 1e-9) + ' m³' : '—']
-    ];
-    els.tableBody.innerHTML = rows
-      .map(r => '<tr><td>' + r[0] + '</td><td class="result-value">' + r[1] + '</td><td>' + r[2] + '</td></tr>').join('');
-  }
-
   function resultsFor(key) {
     const d = readDims(key);
     if (!valid(key, d)) return null;
@@ -383,9 +354,8 @@
   function updateLight() {
     const key = els.select.value;
     const r = resultsFor(key);
-    if (!r) { els.tableBody.innerHTML = ''; return; }
+    if (!r) return;
     renderNumbers(r.res);
-    renderTable(key, r.d, r.res, r.bulbName);
   }
 
   function update() {
@@ -394,11 +364,9 @@
     if (!r) {
       Object.values(els.out).forEach(el => { el.textContent = '—'; });
       Plotly.purge(els.plot);
-      els.tableBody.innerHTML = '';
       return;
     }
     renderNumbers(r.res);
-    renderTable(key, r.d, r.res, r.bulbName);
     if (key !== 'bulb') renderPlot(key, r.d, r.res);
   }
 
