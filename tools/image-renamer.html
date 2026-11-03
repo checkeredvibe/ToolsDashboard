@@ -6,7 +6,7 @@
   <meta name="description" content="Image renamer: rename the images in a local folder manually one by one with a live preview, or in batch with a prefix + counter pattern. Fully offline (File System Access API), no network.">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <title>Tool: Image Renamer</title>
-  <meta name="last-updated" content="2026-11-03T10:50:30Z">
+  <meta name="last-updated" content="2026-11-03T11:19:09Z">
   <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/css/template.css">
 </head>
@@ -35,6 +35,7 @@
             <div class="card-header">Folder</div>
             <div class="card-body">
               <button id="btn-open-folder" class="btn btn-primary w-100" type="button">Open folder&hellip;</button>
+              <div id="folder-path" class="small text-body-secondary mt-2 d-none" aria-live="polite"></div>
               <div id="error-msg" class="alert alert-danger mt-2 mb-0 d-none" role="alert"></div>
               <div class="form-text">Supported: .jpg .jpeg .png .gif .webp .bmp. Files never leave your machine.</div>
             </div>
@@ -64,7 +65,7 @@
               </div>
               <button id="btn-apply" class="btn btn-primary" type="button" disabled>Apply &amp; Next</button>
               <button id="btn-cancel" class="btn btn-outline-secondary" type="button" disabled>Cancel / Re-select</button>
-              <div class="form-text">Enter applies the rename. An empty name does nothing.</div>
+              <div class="form-text">Enter applies the rename. Enter with an empty field skips the image (old name is kept).</div>
             </div>
           </div>
 
@@ -187,6 +188,6 @@
   <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/template.js"></script>
   <script src="../assets/js/tools.js"></script>
-  <script src="../assets/js/image-renamer.js?v=3d986a24"></script>
+  <script src="../assets/js/image-renamer.js?v=16137e93"></script>
 </body>
 </html>

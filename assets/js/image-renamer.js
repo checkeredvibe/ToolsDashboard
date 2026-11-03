@@ -11,6 +11,7 @@
 
   const $ = (id) => document.getElementById(id);
   const btnOpenFolder = $('btn-open-folder');
+  const folderPath = $('folder-path');
   const errorMsg = $('error-msg');
   const doneMsg = $('done-msg');
   const cardManual = $('card-manual');
@@ -152,7 +153,8 @@
     previewPlaceholder.hidden = false;
     previewPlaceholder.textContent = 'All images processed. Open a folder to start again.';
     fileInfo.textContent = '\u2014';
-    showDone('All ' + files.length + ' images processed (manual mode).');
+    const renamed = files.filter((f) => f.newName).length;
+    showDone('All ' + files.length + ' images processed (manual mode): ' + renamed + ' renamed, ' + (files.length - renamed) + ' skipped.');
   }
 
   async function applyManual() {
@@ -172,6 +174,13 @@
       console.error(err);
       showError('Rename failed: ' + err.message);
     }
+  }
+
+  function skipImage() {
+    if (getMode() !== 'manual' || !files.length) return;
+    currentIndex++;
+    hideDone();
+    showCurrentImage();
   }
 
   async function applyBatch() {
@@ -214,6 +223,8 @@
     hideDone();
     try {
       dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      folderPath.textContent = 'Selected folder: ' + dirHandle.name;
+      folderPath.classList.remove('d-none');
     } catch (err) {
       if (err && err.name === 'AbortError') return;
       console.error(err);
@@ -264,6 +275,7 @@
     setControlsEnabled(false);
     hideDone();
     clearError();
+    folderPath.classList.add('d-none');
     clearThumbs();
     imagePreview.hidden = true;
     previewPlaceholder.hidden = false;
@@ -281,7 +293,9 @@
   btnCancel.addEventListener('click', reset);
   btnApplyBatch.addEventListener('click', applyBatch);
   inNewName.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') applyManual();
+    if (e.key !== 'Enter') return;
+    if (!inNewName.value.trim()) skipImage();
+    else applyManual();
   });
   document.querySelectorAll('input[name="rename-mode"]').forEach((r) => {
     r.addEventListener('change', renderMode);
