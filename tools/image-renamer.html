@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tool: Image Renamer</title>
+  <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="../assets/css/template.css">
+</head>
+<body>
+  <nav class="navbar sticky-top dashboard-header">
+    <div class="container-xl">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="../index.html">
+        <img src="../assets/img/logo-navbar.png" alt="Logo" class="navbar-logo">
+        <span class="fw-semibold">&larr; Engineering Tools Dashboard</span>
+      </a>
+      <button id="theme-toggle" class="btn btn-sm btn-outline-secondary ms-auto" type="button" aria-label="Toggle light/dark theme">&#127769;</button>
+    </div>
+  </nav>
+
+  <main class="container-xl py-4">
+    <h1 class="h3 mb-1">Image Renamer</h1>
+    <p class="text-body-secondary small mb-4">Batch-rename the images in a folder one by one, with a live preview. Fully offline &mdash; requires Chrome or Edge (File System Access API). File sizes use SI units (1 kB = 1000 B).</p>
+
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="card h-100">
+          <div class="card-header">Inputs</div>
+          <div class="card-body d-flex flex-column gap-3">
+            <div>
+              <span class="form-label fw-semibold d-block">Folder</span>
+              <button id="btn-open-folder" class="btn btn-primary w-100" type="button">Open folder&hellip;</button>
+              <div id="error-msg" class="alert alert-danger mt-2 mb-0 d-none" role="alert"></div>
+              <div class="form-text">Supported: .jpg .jpeg .png .gif .webp .bmp. Files never leave your machine.</div>
+            </div>
+            <hr class="my-0">
+            <div id="rename-controls" class="d-flex flex-column gap-2">
+              <div class="small text-body-secondary" id="current-filename-display">Current file: &mdash;</div>
+              <div>
+                <label class="form-label fw-semibold" for="new-name-input">New name (without extension)</label>
+                <input type="text" id="new-name-input" class="form-control" placeholder="Enter new name" autocomplete="off" disabled>
+              </div>
+              <button id="btn-apply" class="btn btn-primary" type="button" disabled>Apply &amp; Next</button>
+              <button id="btn-cancel" class="btn btn-outline-secondary" type="button" disabled>Cancel / Re-select</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-8">
+        <div class="card h-100">
+          <div class="card-header">Results</div>
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex align-items-center justify-content-center border rounded mb-3 overflow-hidden" style="min-height: 320px; max-height: 60vh;">
+              <img id="image-preview" class="img-fluid d-none" alt="Preview" style="max-height: 60vh;">
+              <span id="preview-placeholder" class="text-body-secondary small p-3 text-center">Open a folder to preview its images here.</span>
+            </div>
+            <div class="d-flex justify-content-between flex-wrap gap-2 small text-body-secondary mt-auto">
+              <span id="file-info">&mdash;</span>
+              <span id="status-bar">Progress: 0 / 0</span>
+            </div>
+            <div id="done-msg" class="alert alert-success mt-3 mb-0 d-none" role="status">All images processed!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="dashboard-footer text-center small text-body-secondary py-3 border-top">
+    This dashboard is partially created by Vibe-coding. Make sure you validate your calculations.
+  </footer>
+
+  <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/template.js"></script>
+  <script src="../assets/js/tools.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      let dirHandle = null;
+      let fileHandles = [];
+      let currentIndex = 0;
+
+      const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
+      const SI_PREFIXES = [[1e9, 'GB'], [1e6, 'MB'], [1e3, 'kB'], [1, 'B']];
+
+      const btnOpenFolder = document.getElementById('btn-open-folder');
+      const btnApply = document.getElementById('btn-apply');
+      const btnCancel = document.getElementById('btn-cancel');
+      const newNameInput = document.getElementById('new-name-input');
+      const imagePreview = document.getElementById('image-preview');
+      const previewPlaceholder = document.getElementById('preview-placeholder');
+      const errorMsg = document.getElementById('error-msg');
+      const statusBar = document.getElementById('status-bar');
+      const fileInfo = document.getElementById('file-info');
+      const currentFilenameDisplay = document.getElementById('current-filename-display');
+      const doneMsg = document.getElementById('done-msg');
+
+      function formatBytes(bytes) {
+        const [factor, unit] = SI_PREFIXES.find(([f]) => bytes >= f) || [1, 'B'];
+        return SI.format(bytes / factor, unit);
+      }
+
+      function showError(message) {
+        errorMsg.textContent = message;
+        errorMsg.classList.remove('d-none');
+      }
+
+      function setRenamingEnabled(enabled) {
+        newNameInput.disabled = !enabled;
+        btnApply.disabled = !enabled;
+        btnCancel.disabled = !enabled;
+      }
+
+      async function selectFolder() {
+        try {
+          errorMsg.classList.add('d-none');
+          doneMsg.classList.add('d-none');
+          dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+
+          fileHandles = [];
+          for await (const entry of dirHandle.values()) {
+            if (entry.kind === 'file') {
+              const ext = entry.name.slice(entry.name.lastIndexOf('.')).toLowerCase();
+              if (IMAGE_EXTENSIONS.includes(ext)) {
+                fileHandles.push({ handle: entry, originalName: entry.name, extension: ext });
+              }
+            }
+          }
+          fileHandles.sort((a, b) => a.originalName.localeCompare(b.originalName));
+
+          if (fileHandles.length === 0) {
+            throw new Error('No supported images found in this folder.');
+          }
+
+          startRenaming();
+        } catch (err) {
+          if (err && err.name === 'AbortError') return;
+          console.error(err);
+          showError(err.message || 'Error accessing folder. Make sure you use Chrome or Edge.');
+        }
+      }
+
+      async function startRenaming() {
+        currentIndex = 0;
+        setRenamingEnabled(true);
+        await showCurrentImage();
+      }
+
+      async function showCurrentImage() {
+        if (currentIndex >= fileHandles.length) {
+          finish();
+          return;
+        }
+
+        const current = fileHandles[currentIndex];
+        const file = await current.handle.getFile();
+        const url = URL.createObjectURL(file);
+
+        imagePreview.onload = () => URL.revokeObjectURL(url);
+        imagePreview.src = url;
+        imagePreview.classList.remove('d-none');
+        previewPlaceholder.classList.add('d-none');
+        currentFilenameDisplay.textContent = 'Current file: ' + current.originalName;
+        fileInfo.textContent = current.originalName + ' \u00b7 ' + formatBytes(file.size);
+        statusBar.textContent = 'Progress: ' + (currentIndex + 1) + ' / ' + fileHandles.length;
+        newNameInput.value = '';
+        newNameInput.focus();
+      }
+
+      async function applyRename() {
+        const newBaseName = newNameInput.value.trim();
+        if (!newBaseName) return;
+
+        const current = fileHandles[currentIndex];
+        const newName = newBaseName + current.extension;
+
+        try {
+          await current.handle.move(newName);
+          current.originalName = newName;
+          currentIndex++;
+          await showCurrentImage();
+        } catch (err) {
+          console.error(err);
+          showError('Rename failed: ' + err.message);
+        }
+      }
+
+      function finish() {
+        setRenamingEnabled(false);
+        newNameInput.disabled = true;
+        imagePreview.classList.add('d-none');
+        previewPlaceholder.classList.remove('d-none');
+        previewPlaceholder.textContent = 'All images processed. Open a folder to start again.';
+        currentFilenameDisplay.textContent = 'Current file: \u2014';
+        fileInfo.textContent = '\u2014';
+        statusBar.textContent = 'Progress: ' + fileHandles.length + ' / ' + fileHandles.length;
+        doneMsg.classList.remove('d-none');
+      }
+
+      function reset() {
+        if (!window.confirm('Are you sure? This will stop the current session.')) return;
+        dirHandle = null;
+        fileHandles = [];
+        currentIndex = 0;
+        setRenamingEnabled(false);
+        doneMsg.classList.add('d-none');
+        imagePreview.classList.add('d-none');
+        previewPlaceholder.classList.remove('d-none');
+        previewPlaceholder.textContent = 'Open a folder to preview its images here.';
+        currentFilenameDisplay.textContent = 'Current file: \u2014';
+        fileInfo.textContent = '\u2014';
+        statusBar.textContent = 'Progress: 0 / 0';
+      }
+
+      btnOpenFolder.addEventListener('click', selectFolder);
+      btnApply.addEventListener('click', applyRename);
+      btnCancel.addEventListener('click', reset);
+      newNameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') applyRename();
+      });
+
+      if (!('showDirectoryPicker' in window)) {
+        showError('This tool requires a browser with the File System Access API (Chrome or Edge).');
+        btnOpenFolder.disabled = true;
+      }
+    })();
+  </script>
+</body>
+</html>
