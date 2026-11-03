@@ -26,7 +26,7 @@
       label: 'Flat bar',
       dims: [
         { key: 'h', label: 'Height h', def: 100, min: DIM_MIN, max: DIM_MAX },
-        { key: 'b', label: 'Thickness', def: 10, min: DIM_MIN, max: DIM_MAX }
+        { key: 'b', label: 'Thickness', def: 10, min: 1, max: 50 }
       ]
     },
     bulb: {
