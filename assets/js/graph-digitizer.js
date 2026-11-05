@@ -126,8 +126,20 @@
     };
   }
 
+  // SI readout formatting: |v| > 999 -> scientific notation with two decimals
+  // and no "+" in the exponent (94866 -> "9.49e4 m", 24545000 -> "2.45e7").
+  function formatSiValue(v, unit) {
+    const u = unit && unit !== '-' ? unit : '';
+    if (Number.isFinite(v) && Math.abs(v) > 999) {
+      return v.toExponential(2).replace('e+', 'e') + (u ? ' ' + u : '');
+    }
+    if (typeof SI !== 'undefined') return SI.format(v, u).trim();
+    if (!Number.isFinite(v)) return '—';
+    return (String(Number(v.toPrecision(4))) + (u ? ' ' + u : '')).trim();
+  }
+
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { solveLinearSystem, computeHomography, applyHomography, invertHomography, niceTicks, logTicks, cornerData };
+    module.exports = { solveLinearSystem, computeHomography, applyHomography, invertHomography, niceTicks, logTicks, cornerData, formatSiValue };
     return;
   }
 
@@ -167,7 +179,7 @@
     wrap: $('graph-wrap'),
     imgCanvas: $('graph-image'),
     overlay: $('graph-overlay'),
-    graphHint: $('graph-hint'),
+    graphInstruction: $('graph-instruction'),
     outCursorX: $('out-cursor-x'),
     outCursorY: $('out-cursor-y'),
     outLastX: $('out-last-x'),
@@ -209,7 +221,7 @@
   const dpr = () => window.devicePixelRatio || 1;
   const unitOf = (u) => (u && u !== '-' ? u : '');
   const axisTitle = (t, u) => (unitOf(u) ? t + ' (' + unitOf(u) + ')' : t);
-  const fmtVal = (v, u) => SI.format(v, unitOf(u)).trim();
+  const fmtVal = (v, u) => formatSiValue(v, u);
 
   function themeColors() {
     const dark = document.documentElement.dataset.bsTheme === 'dark';
@@ -277,15 +289,23 @@
 
   function updateCalibUi() {
     const n = state.calPoints.length;
+    let status;
+    let instruction;
     if (!state.img) {
-      els.calibStatus.textContent = 'Upload an image first.';
+      status = 'Upload an image first.';
+      instruction = 'Upload an image to start.';
     } else if (n < 4) {
-      els.calibStatus.textContent = 'Click corner ' + (n + 1) + '/4 (' + CAL_LABELS[n] + ') of the plot frame on the graph. Drag a marker to adjust it.';
+      status = 'Click corner ' + (n + 1) + '/4 (' + CAL_LABELS[n] + ') of the plot frame on the graph. Drag a marker to adjust it.';
+      instruction = 'Calibration: click corner ' + (n + 1) + ' of 4 — ' + CAL_LABELS[n] + ' of the plot frame';
     } else if (state.calError) {
-      els.calibStatus.textContent = '4 points placed, but the calibration is invalid — see the message below.';
+      status = '4 points placed, but the calibration is invalid — see the message below.';
+      instruction = '4 points placed — check the calibration values in the left column.';
     } else {
-      els.calibStatus.textContent = 'Calibrated (residual ' + state.residual.toFixed(2) + ' px). Click on the graph to digitize points.';
+      status = 'Calibrated (residual ' + state.residual.toFixed(2) + ' px). Click on the graph to digitize points.';
+      instruction = 'Calibrated (residual ' + state.residual.toFixed(2) + ' px) — click anywhere on the graph to digitize a point';
     }
+    els.calibStatus.textContent = status;
+    els.graphInstruction.textContent = instruction;
     if (state.calError) {
       els.calibError.textContent = state.calError;
       els.calibError.classList.remove('d-none');
@@ -631,7 +651,6 @@
         updateReadouts();
         refreshUi();
         els.imageStatus.textContent = file.name + ' — ' + img.width + ' × ' + img.height + ' px';
-        els.graphHint.textContent = 'Click the 4 plot-frame corners to calibrate, then click anywhere on the graph to digitize.';
         draw();
         renderPlot();
       };
