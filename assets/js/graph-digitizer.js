@@ -302,7 +302,7 @@
       instruction = '4 corner points placed — fix the axis values in the left input column (see the message there).';
     } else {
       status = '4 points placed — make sure the axis values on the left are set correctly. Calibrated (residual ' + state.residual.toFixed(2) + ' px); click on the graph to digitize points.';
-      instruction = '4 corner points placed — make sure the axis values in the left input column are set correctly (x left/right, y bottom/top; residual ' + state.residual.toFixed(2) + ' px). Click on the graph to digitize.';
+      instruction = '4 corner points placed — make sure the axis values in the left input column are set correctly (x left/right, y bottom/top). Click on the graph to digitize.';
     }
     els.calibStatus.textContent = status;
     els.graphInstruction.textContent = instruction;
