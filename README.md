@@ -26,7 +26,8 @@ All results use SI units. No external network resources are used — open
   - inputs: text, number, single slider, two-sided slider (slide or type
     min/max, both stay in sync, step 0.1), on/off switch, dropdown select,
     multi-select checkboxes, date/time picker, color picker, single-choice
-    radio group, local .csv file upload (FileReader, never sent anywhere);
+    radio group, local file uploads — .csv (FileReader) and image (object URL
+    preview), never sent anywhere;
     a bundled placeholder `assets/data/example.csv` is auto-loaded into the
     CSV preview on page load (over Pages/HTTP; via file:// fetch is blocked,
     so upload manually there)
@@ -98,7 +99,7 @@ All results use SI units. No external network resources are used — open
      values** for every input parameter (and why), which **outputs** it must
      show (numbers, plots, tables, images, …), and which **field types** to
      use for each input and output (text, number, single slider, two-sided
-     slider, toggle, dropdown, checkboxes, date/time, color, radio, CSV
+     slider, toggle, dropdown, checkboxes, date/time, color, radio, CSV/image
      upload — and number/line plot/scatter/3D plot/table/image/CSV preview
      on the output side), as listed in `tools/template.html`.
    Do not guess these — the engineer decides.

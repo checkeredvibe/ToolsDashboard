@@ -30,6 +30,9 @@
     outImage: $('out-image'),
     csv: $('in-csv'),
     csvStatus: $('csv-status'),
+    image: $('in-image'),
+    imageStatus: $('image-status'),
+    imagePreview: $('in-image-preview'),
     csvSummary: $('csv-summary'),
     csvTable: $('out-csv-table')
   };
@@ -317,6 +320,35 @@
       els.csvStatus.textContent = 'Could not read "' + file.name + '".';
     };
     reader.readAsText(file);
+  });
+
+  // Image upload: previewed locally via an object URL, never sent anywhere
+  let imageObjectUrl = null;
+  els.image.addEventListener('change', () => {
+    const file = els.image.files && els.image.files[0];
+    if (imageObjectUrl) { URL.revokeObjectURL(imageObjectUrl); imageObjectUrl = null; }
+    if (!file) {
+      els.imageStatus.textContent = 'No image loaded.';
+      els.imagePreview.hidden = true;
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      els.imageStatus.textContent = '"' + file.name + '" is not an image file.';
+      els.imagePreview.hidden = true;
+      return;
+    }
+    imageObjectUrl = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      els.imageStatus.textContent = file.name + ' — ' + img.width + ' × ' + img.height + ' px (read locally, never uploaded)';
+      els.imagePreview.src = imageObjectUrl;
+      els.imagePreview.hidden = false;
+    };
+    img.onerror = () => {
+      els.imageStatus.textContent = 'Could not decode "' + file.name + '" as an image.';
+      els.imagePreview.hidden = true;
+    };
+    img.src = imageObjectUrl;
   });
 
   function renderCsvTable() {

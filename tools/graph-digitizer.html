@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Graph digitizer: upload a scanned/printed graph, calibrate the axes with 4 corner points (skew- and log-safe), then click any point to read its value. Multiple curves, CSV/PNG export. Fully offline, SI units.">
+  <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+  <title>Tool: Graph Digitizer</title>
+  <meta name="last-updated" content="2026-11-05T17:06:53Z">
+  <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="../assets/css/template.css">
+</head>
+<body>
+  <nav class="navbar sticky-top dashboard-header">
+    <div class="container-xl">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="../index.html">
+        <img src="../assets/img/logo-navbar.png" alt="Logo" class="navbar-logo">
+        <span class="fw-semibold">&larr; Engineering Tools Dashboard</span>
+      </a>
+      <button id="theme-toggle" class="btn btn-sm btn-outline-secondary ms-auto" type="button" aria-label="Toggle light/dark theme">&#127769;</button>
+    </div>
+  </nav>
+
+  <main class="container-xl py-4">
+    <h1 class="h3 mb-1">Graph Digitizer</h1>
+    <p class="text-body-secondary small mb-4">Digitize scanned or printed graphs: upload an image, click the 4 corners of the plot frame and enter the axis values there (handles skewed/perspective scans and logarithmic axes), then click any point on the graph to read its value. Multiple curves per graph, re-plot, CSV and PNG export. Fully offline &mdash; the image is read locally and never leaves your machine. All values in SI units.</p>
+
+    <div class="tool-layout">
+      <!-- ============ LEFT: INPUT TILES (30%) ============ -->
+      <div class="d-flex flex-column gap-3" id="input-tiles">
+        <h2 class="tool-col-header mb-0">Input</h2>
+        <form id="tool-inputs" novalidate class="d-flex flex-column gap-3">
+
+          <div class="card">
+            <div class="card-header">Graph image</div>
+            <div class="card-body">
+              <button id="btn-upload" class="btn btn-primary w-100" type="button">Upload image&hellip;</button>
+              <input type="file" id="in-image" accept="image/*,.png,.jpg,.jpeg,.gif,.webp,.bmp" hidden>
+              <div id="image-status" class="small text-body-secondary mt-2">No image loaded &mdash; or drag &amp; drop an image onto the graph.</div>
+              <div id="error-msg" class="alert alert-danger mt-2 mb-0 d-none" role="alert"></div>
+              <div class="form-text">Supported: .png .jpg .jpeg .gif .webp .bmp. Read locally with FileReader; nothing is uploaded.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Axes</div>
+            <div class="card-body d-flex flex-column gap-2">
+              <div class="row g-2">
+                <div class="col-8">
+                  <label for="in-x-title" class="form-label small mb-1">x-axis title</label>
+                  <input type="text" class="form-control form-control-sm" id="in-x-title" value="x" maxlength="60">
+                </div>
+                <div class="col-4">
+                  <label for="in-x-unit" class="form-label small mb-1">x unit (SI)</label>
+                  <input type="text" class="form-control form-control-sm" id="in-x-unit" value="-" maxlength="12" placeholder="e.g. m, s, N">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-8">
+                  <label for="in-y-title" class="form-label small mb-1">y-axis title</label>
+                  <input type="text" class="form-control form-control-sm" id="in-y-title" value="y" maxlength="60">
+                </div>
+                <div class="col-4">
+                  <label for="in-y-unit" class="form-label small mb-1">y unit (SI)</label>
+                  <input type="text" class="form-control form-control-sm" id="in-y-unit" value="-" maxlength="12" placeholder="e.g. m, s, N">
+                </div>
+              </div>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="in-log-x">
+                <label class="form-check-label" for="in-log-x">x-axis logarithmic</label>
+              </div>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="in-log-y">
+                <label class="form-check-label" for="in-log-y">y-axis logarithmic</label>
+              </div>
+              <div class="form-text">Log axes need corner values &gt; 0; the mapping is done in log&#8321;&#8320; space.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Calibration &mdash; 4 corner points</div>
+            <div class="card-body d-flex flex-column gap-2">
+              <div id="calib-status" class="small text-body-secondary" aria-live="polite">Upload an image, then click the plot-frame corners in order: 1 bottom-left, 2 bottom-right, 3 top-right, 4 top-left. Drag a marker to adjust it.</div>
+              <div class="row g-2">
+                <div class="col-6">
+                  <label for="in-cal-x-left" class="form-label small mb-1">x at left edge</label>
+                  <input type="number" class="form-control form-control-sm" id="in-cal-x-left" step="any" value="0">
+                </div>
+                <div class="col-6">
+                  <label for="in-cal-x-right" class="form-label small mb-1">x at right edge</label>
+                  <input type="number" class="form-control form-control-sm" id="in-cal-x-right" step="any" value="1">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-6">
+                  <label for="in-cal-y-bottom" class="form-label small mb-1">y at bottom edge</label>
+                  <input type="number" class="form-control form-control-sm" id="in-cal-y-bottom" step="any" value="0">
+                </div>
+                <div class="col-6">
+                  <label for="in-cal-y-top" class="form-label small mb-1">y at top edge</label>
+                  <input type="number" class="form-control form-control-sm" id="in-cal-y-top" step="any" value="1">
+                </div>
+              </div>
+              <div id="calib-error" class="alert alert-danger py-1 px-2 small mb-0 d-none" role="alert"></div>
+              <div class="d-flex gap-2">
+                <button id="btn-undo-cal" class="btn btn-outline-secondary btn-sm" type="button" disabled>Undo point</button>
+                <button id="btn-clear-cal" class="btn btn-outline-secondary btn-sm" type="button" disabled>Clear calibration</button>
+              </div>
+              <div class="form-text">A projective transform (homography) is fitted through the 4 points, so skewed/perspective scans are mapped correctly.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Series (curves)</div>
+            <div class="card-body d-flex flex-column gap-2">
+              <div class="row g-2">
+                <div class="col-8">
+                  <label for="in-series-name" class="form-label small mb-1">Active series name</label>
+                  <input type="text" class="form-control form-control-sm" id="in-series-name" value="Curve 1" maxlength="60">
+                </div>
+                <div class="col-4">
+                  <label for="in-series-color" class="form-label small mb-1">Color</label>
+                  <input type="color" class="form-control form-control-color form-control-sm" id="in-series-color" value="#e6194b" title="Series color">
+                </div>
+              </div>
+              <label for="in-series-select" class="form-label small mb-1">Active series (points are added here)</label>
+              <select class="form-select form-select-sm" id="in-series-select"></select>
+              <div class="d-flex gap-2">
+                <button id="btn-add-series" class="btn btn-outline-primary btn-sm" type="button">Add series</button>
+                <button id="btn-remove-series" class="btn btn-outline-secondary btn-sm" type="button">Remove series</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Overlay &amp; view</div>
+            <div class="card-body d-flex flex-column gap-2">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="in-show-grid" checked>
+                <label class="form-check-label" for="in-show-grid">Grid + tick labels on the graph</label>
+              </div>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="in-show-crosshair" checked>
+                <label class="form-check-label" for="in-show-crosshair">Live crosshair readout at cursor</label>
+              </div>
+              <div class="d-flex gap-2">
+                <button id="btn-zoom-in" class="btn btn-outline-secondary btn-sm" type="button" disabled>Zoom +</button>
+                <button id="btn-zoom-out" class="btn btn-outline-secondary btn-sm" type="button" disabled>Zoom &minus;</button>
+                <button id="btn-zoom-fit" class="btn btn-outline-secondary btn-sm" type="button" disabled>Fit</button>
+              </div>
+              <div class="form-text">Mouse wheel zooms around the cursor; left-drag pans. A plain click adds a point (or a calibration corner).</div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- ============ RIGHT: OUTPUT FIELDS (70%) ============ -->
+      <div class="d-flex flex-column gap-3">
+        <h2 class="tool-col-header mb-0">Output</h2>
+
+        <div class="card">
+          <div class="card-header">Graph (click to digitize, drag to pan, wheel to zoom)</div>
+          <div class="card-body">
+            <div id="graph-instruction" class="alert alert-info py-2 mb-2 fw-semibold" role="status">Upload an image to start.</div>
+            <div id="graph-wrap" style="position:relative; width:100%; height:320px; overflow:hidden; border:1px solid var(--bs-border-color); border-radius:0.375rem; background:var(--bs-tertiary-bg);">
+              <canvas id="graph-image" style="position:absolute; inset:0; width:100%; height:100%;"></canvas>
+              <canvas id="graph-overlay" style="position:absolute; inset:0; width:100%; height:100%; cursor:crosshair; touch-action:none;"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Readout</div>
+          <div class="card-body">
+            <table class="table table-sm mb-0">
+              <tbody>
+                <tr><td class="text-body-secondary">Cursor</td><td class="result-value" id="out-cursor-x">&mdash;</td><td class="result-value" id="out-cursor-y">&mdash;</td></tr>
+                <tr><td class="text-body-secondary">Last clicked point</td><td class="result-value" id="out-last-x">&mdash;</td><td class="result-value" id="out-last-y">&mdash;</td></tr>
+                <tr><td class="text-body-secondary">Calibration residual (max)</td><td class="result-value" id="out-residual" colspan="2">&mdash;</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Digitized points</div>
+          <div class="card-body">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <button id="btn-undo-point" class="btn btn-outline-secondary btn-sm" type="button" disabled>Undo last point</button>
+              <button id="btn-clear-points" class="btn btn-outline-secondary btn-sm" type="button" disabled>Clear all</button>
+              <span id="points-count" class="small text-body-secondary ms-auto">0 points</span>
+            </div>
+            <div class="table-responsive" style="max-height: 280px;">
+              <table class="table table-sm table-striped mb-0" id="points-table">
+                <thead>
+                  <tr><th>Series</th><th>#</th><th>x</th><th>y</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+              <p class="text-body-secondary small mb-0 mt-2" id="points-empty">No points yet &mdash; click on the calibrated graph.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Re-plot of digitized points (interactive)</div>
+          <div class="card-body">
+            <div id="out-plot" class="tool-plot"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Export (generated locally)</div>
+          <div class="card-body d-flex flex-wrap align-items-center gap-2">
+            <button id="btn-csv" class="btn btn-primary btn-sm" type="button" disabled>Download CSV</button>
+            <button id="btn-png" class="btn btn-outline-primary btn-sm" type="button" disabled>Download annotated PNG</button>
+            <span class="form-text mb-0">CSV: all series (series, #, x, y). PNG: the scan with grid, calibration markers and digitized points.</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============ BOTTOM: CALCULATIONS & SOURCES (100%) ============ -->
+      <div class="card tool-bottom">
+        <div class="card-header">Calculations used &amp; sources</div>
+        <div class="card-body">
+          <div class="row g-4">
+            <div class="col-lg-7">
+              <h2 class="h6">Equations</h2>
+              <ul class="formula-list mb-3">
+                <li>Projective transform (homography) <code>H</code> with <code>h&#8323;&#8323; = 1</code>, fitted from the 4 clicked pixel&ndash;data corner correspondences by solving the 8&times;8 linear system <code>H &middot; (u, v, 1)&#7522; &asymp; (x, y, 1)</code> (Gaussian elimination): <code>(x, y) = pixel&rarr;data</code>, inverse used to draw the grid.</li>
+                <li>Logarithmic axes: the same homography is fitted in log space, <code>x = 10^(x&#8342;&#8338;g)</code>, <code>y = 10^(y&#8342;&#8338;g)</code>, so semi-log/log-log graphs digitize correctly.</li>
+                <li>Tick placement: 1&ndash;2&ndash;5 &ldquo;nice&rdquo; steps for linear axes; decades with 2&hellip;9 minor ticks for log axes.</li>
+                <li>Calibration residual: max reprojection error of the 4 corner points (pixel&rarr;data&rarr;pixel), in px.</li>
+              </ul>
+              <p class="small text-body-secondary mb-0">All axis values and results are in SI units; readouts use the shared <code>SI.format</code> helper.</p>
+            </div>
+            <div class="col-lg-5">
+              <h2 class="h6">Sources</h2>
+              <ul class="small mb-0">
+                <li>No external references (per engineer): standard projective geometry &mdash; a homography is uniquely determined by 4 point correspondences.</li>
+                <li>Fully offline: image read with FileReader, all computation in the browser, no network.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="dashboard-footer text-center small text-body-secondary py-3 border-top">
+    <span class="last-updated" id="last-updated"></span>
+    TG2026 - Make sure you validate your calculations before using them for professional purposes.
+  </footer>
+
+  <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="../assets/vendor/plotly/plotly-cartesian.min.js"></script>
+  <script src="../assets/js/template.js"></script>
+  <script src="../assets/js/tools.js"></script>
+  <script src="../assets/js/graph-digitizer.js"></script>
+</body>
+</html>
