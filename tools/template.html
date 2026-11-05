@@ -6,7 +6,7 @@
   <meta name="description" content="General template for tool dashboards: one example of every input and output field type. Offline, SI units.">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <title>Tool template: all field types</title>
-  <meta name="last-updated" content="2026-10-31T15:44:17Z">
+  <meta name="last-updated" content="2026-11-05T16:40:09Z">
   <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/css/template.css">
 </head>
@@ -168,6 +168,16 @@
               <label for="in-csv" class="form-label">CSV file (read locally, never uploaded)</label>
               <input type="file" class="form-control" id="in-csv" accept=".csv,text/csv">
               <div class="form-text" id="csv-status">No file loaded.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Upload image file</div>
+            <div class="card-body">
+              <label for="in-image" class="form-label">Image file (read locally, never uploaded)</label>
+              <input type="file" class="form-control" id="in-image" accept="image/*,.png,.jpg,.jpeg,.gif,.webp,.bmp">
+              <div class="form-text" id="image-status">No image loaded.</div>
+              <img id="in-image-preview" class="img-fluid border rounded mt-2" alt="Preview of the uploaded image" hidden style="max-height: 240px;">
             </div>
           </div>
 
