@@ -299,10 +299,10 @@
       instruction = 'Calibration: click corner ' + (n + 1) + ' of 4 — ' + CAL_LABELS[n] + ' of the plot frame';
     } else if (state.calError) {
       status = '4 points placed, but the calibration is invalid — see the message below.';
-      instruction = '4 points placed — check the calibration values in the left column.';
+      instruction = '4 corner points placed — fix the axis values in the left input column (see the message there).';
     } else {
-      status = 'Calibrated (residual ' + state.residual.toFixed(2) + ' px). Click on the graph to digitize points.';
-      instruction = 'Calibrated (residual ' + state.residual.toFixed(2) + ' px) — click anywhere on the graph to digitize a point';
+      status = '4 points placed — make sure the axis values on the left are set correctly. Calibrated (residual ' + state.residual.toFixed(2) + ' px); click on the graph to digitize points.';
+      instruction = '4 corner points placed — make sure the axis values in the left input column are set correctly (x left/right, y bottom/top; residual ' + state.residual.toFixed(2) + ' px). Click on the graph to digitize.';
     }
     els.calibStatus.textContent = status;
     els.graphInstruction.textContent = instruction;
