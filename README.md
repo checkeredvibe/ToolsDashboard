@@ -46,6 +46,10 @@ All results use SI units. No external network resources are used — open
   highlighting, category chips, sorting, result counter, URL-hash state.
 - `assets/js/tools.js` — shared SI-unit helpers (`SI.format`, `SI.parse`).
 - `assets/js/<tool-name>.js` — per-tool logic (calculations + Plotly plots).
+- Tool pages include scripts in this fixed order: `bootstrap.bundle.min.js`,
+  only the Plotly bundle(s) the tool needs (`plotly-cartesian.min.js` and/or
+  `plotly-gl3d.min.js`), `template.js`, `tools.js`, then `assets/js/<tool-name>.js`.
+  The navbar links back to `../index.html` ("&larr; Engineering Tools Dashboard").
 - `tools/<tool-name>.html` — tool pages use the `.tool-layout` grid from
   `template.css`: 30% inputs on the left, 70% results (values, interactive
   plots, tables) on the right, and a full-width bottom row with the formulas
@@ -56,6 +60,20 @@ All results use SI units. No external network resources are used — open
 - `assets/data/bulb-profiles.js` — predefined bulb flats HP 60x4–HP 430x20
   (EN 10067 / DIN 1025-2 dimension table, ArcelorMittal publication), used by
   the Section Properties tool's bulb-profile dropdown.
+
+## Current tools
+
+- `tools/section-properties.html` (category `mechanics`) — area, centroid, second
+  moment of area and section modulus of beam sections (I-beam, flat bar, bulb
+  profile, tubes) with a section drawing; dropdown of standard bulb flats
+  (EN 10067 / DIN 1025-2 via `assets/data/bulb-profiles.js`); mm inputs, SI results.
+- `tools/graph-digitizer.html` (category `data`) — digitize scanned graphs: image
+  upload, 4-point homography calibration (skew/perspective/log-safe),
+  click-to-read values, multiple series, re-plot, CSV/PNG export.
+- `tools/image-renamer.html` (category `media`) — rename images in a folder,
+  manually one by one or in batch with a prefix + counter pattern; fully offline.
+- `tools/template.html` (category `template`) — starter page with one example of
+  every supported field type (see Architecture).
 
 ## Design decisions
 
@@ -124,3 +142,20 @@ All results use SI units. No external network resources are used — open
    `tools/<tool-name>.html`, including descriptive `data-keywords` (at least
    five), a `data-category`, and a `data-updated` date.
 9. Test offline by opening `index.html` directly in a browser.
+
+## Validation checklist before finishing a tool
+
+- Page works offline from `file://` and from GitHub Pages; no external requests
+  (check the browser network tab).
+- All values in SI; plot axes and readouts labeled with units via `SI.format`.
+- The tile is findable via its `data-keywords`, appears under its `data-category`
+  chip, and sorts correctly by `data-updated`.
+- `<meta name="last-updated">` and `<span id="last-updated">` are present and the
+  meta is bumped; the theme toggle still works.
+- The bottom card lists the actual equations and sources from round 1.
+
+## Git workflow
+
+- Work on a feature branch (e.g. `GraphDigitizer`) and open a PR to `main`
+  (merged PRs #1–#7 show the pattern).
+- Commit messages in the repo style: "Tool name: what changed".
