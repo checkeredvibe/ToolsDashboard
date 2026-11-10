@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Fatigue damage D estimator: one-slope S-N curve with Weibull long-term stress-range distribution (DNV-CG-129 App. C 2.2). Stress in MPa (N/mm^2), offline.">
+  <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+  <title>Tool: Fatigue Damage Calculator</title>
+  <meta name="last-updated" content="2026-11-10T17:01:12Z">
+  <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="../assets/css/template.css">
+</head>
+<body>
+  <nav class="navbar sticky-top dashboard-header">
+    <div class="container-xl">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="../index.html">
+        <img src="../assets/img/logo-navbar.png" alt="Logo" class="navbar-logo">
+        <span class="fw-semibold">&larr; Engineering Tools Dashboard</span>
+      </a>
+      <button id="theme-toggle" class="btn btn-sm btn-outline-secondary ms-auto" type="button" aria-label="Toggle light/dark theme">&#127769;</button>
+    </div>
+  </nav>
+
+  <main class="container-xl py-4">
+    <h1 class="h3 mb-1">Fatigue Damage Calculator</h1>
+    <p class="text-body-secondary small mb-4">Fatigue damage <code>D</code> estimate for one-slope S-N curves with a Weibull long-term stress-range distribution (DNV-CG-129, July 2026 ed., App. C 2.2). Stress ranges in MPa (N/mm&sup2;, as defined by the DNV S-N curves), lengths in m, life in years. All local &mdash; no network.</p>
+
+    <div class="tool-layout">
+      <!-- ============ LEFT: INPUT TILES (30%) ============ -->
+      <div class="d-flex flex-column gap-3" id="input-tiles">
+        <h2 class="tool-col-header mb-0">Input</h2>
+        <form id="tool-inputs" novalidate class="d-flex flex-column gap-3">
+
+          <div class="card">
+            <div class="card-header">Stress range at the detail</div>
+            <div class="card-body">
+              <div class="mb-3">
+                <label class="form-label mb-1" for="num-ds0">Largest stress range &Delta;&sigma;<sub>0</sub> (MPa) &mdash; exceeded once in n&#8320; cycles</label>
+                <div class="d-flex gap-2 align-items-center">
+                  <input type="range" class="form-range flex-grow-1" id="slider-ds0" min="1" max="500" step="1" value="160">
+                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-ds0" min="1" max="500" step="any" value="160">
+                </div>
+              </div>
+              <div class="form-text">e.g. hot-spot stress range at the detail of interest (Excel: &ldquo;Stress range E-deck&rdquo;).</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">One-slope S-N curve (DNV-CG-129 Sec. 2.3, Table 1)</div>
+            <div class="card-body">
+              <label for="in-fat-preset" class="form-label">Standard FAT class (fills X below)</label>
+              <select class="form-select mb-2" id="in-fat-preset">
+                <option value="custom" selected>Custom X (enter below)</option>
+                <option value="160">B1 (160 MPa)</option>
+                <option value="150">B (150 MPa)</option>
+                <option value="140">B2 (140 MPa)</option>
+                <option value="125">C (125 MPa)</option>
+                <option value="112">C1 (112 MPa)</option>
+                <option value="100">C2 (100 MPa)</option>
+                <option value="90">D (90 MPa)</option>
+                <option value="80">E (80 MPa)</option>
+                <option value="71">F (71 MPa)</option>
+              </select>
+              <label for="num-fat" class="form-label">FAT class X &mdash; reference stress at 2&middot;10&#8310; cycles (MPa)</label>
+              <input type="number" class="form-control" id="num-fat" min="1" max="500" step="any" value="62">
+              <div class="form-text">X stays editable after picking a preset.</div>
+              <hr>
+              <div class="form-label mb-1">S-N slope m (radio, one slope)</div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="in-m" id="in-m-3" value="3" checked>
+                <label class="form-check-label" for="in-m-3">m = 3 &mdash; lower branch, <code>log K&#8322; = 6.301 + 3&middot;log&#8321;&#8320;(X)</code></label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="in-m" id="in-m-5" value="5">
+                <label class="form-check-label" for="in-m-5">m = 5 &mdash; upper branch, <code>log K&#8322; = 7 + 5&middot;log&#8321;&#8320;(0.585&middot;X)</code></label>
+              </div>
+              <div class="form-text">FAT X row of Sec. 2.3 Table 1; one-slope curves give conservative fatigue-life estimates (App. C 2.2).</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Ship, operation &amp; design life</div>
+            <div class="card-body">
+              <div class="mb-3">
+                <label class="form-label mb-1" for="num-l">Rule length L (m)</label>
+                <div class="d-flex gap-2 align-items-center">
+                  <input type="range" class="form-range flex-grow-1" id="slider-l" min="10" max="600" step="1" value="150">
+                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-l" min="10" max="600" step="any" value="150">
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label mb-1" for="num-f0">Fraction of time at sea f&#8320; (%)</label>
+                <div class="d-flex gap-2 align-items-center">
+                  <input type="range" class="form-range flex-grow-1" id="slider-f0" min="0" max="100" step="1" value="50">
+                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-f0" min="0" max="100" step="any" value="50">
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="num-td" class="form-label">Design life T<sub>D</sub> (years)</label>
+                <input type="number" class="form-control" id="num-td" min="0.1" max="100" step="any" value="25">
+              </div>
+              <div class="mb-3">
+                <label for="num-n0" class="form-label">n&#8320; &mdash; cycles in which &Delta;&sigma;<sub>0</sub> occurs once (&ndash;)</label>
+                <input type="number" class="form-control" id="num-n0" min="2" step="any" value="10000000">
+              </div>
+              <div>
+                <label for="num-eta" class="form-label">Allowable damage &eta; (&ndash;)</label>
+                <input type="number" class="form-control" id="num-eta" min="0.001" max="10" step="any" value="1">
+                <div class="form-text">Acceptance check: D &le; &eta;.</div>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- ============ RIGHT: OUTPUT FIELDS (70%) ============ -->
+      <div class="d-flex flex-column gap-3">
+        <h2 class="tool-col-header mb-0">Output</h2>
+
+        <div class="card">
+          <div class="card-header">Fatigue damage</div>
+          <div class="card-body">
+            <div class="row g-3 text-center">
+              <div class="col-6 col-md-4">
+                <div class="text-body-secondary small">Damage D</div>
+                <div class="result-value fs-4" id="out-d">&mdash;</div>
+                <div class="small mt-1"><span class="badge" id="out-status">&mdash;</span></div>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="text-body-secondary small">Fatigue life T<sub>D</sub> / D</div>
+                <div class="result-value fs-4" id="out-life">&mdash;</div>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="text-body-secondary small">Equivalent stress range S<sub>eq</sub></div>
+                <div class="result-value fs-4" id="out-seq">&mdash;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">One-slope S-N curve (log-log), N = K&#8322; &middot; &Delta;&sigma;<sup>&minus;m</sup></div>
+          <div class="card-body">
+            <div id="out-plot-sn" class="tool-plot"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Weibull long-term exceedance Q(&Delta;&sigma;) = exp(&minus;(&Delta;&sigma;/q)<sup>&xi;</sup>)</div>
+          <div class="card-body">
+            <div id="out-plot-weibull" class="tool-plot"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Results</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-csv">Download curve data (CSV)</button>
+          </div>
+          <div class="card-body table-responsive">
+            <table class="table table-sm table-striped mb-0" id="out-table">
+              <thead>
+                <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============ BOTTOM: CALCULATIONS & SOURCES (100%) ============ -->
+      <div class="card tool-bottom">
+        <div class="card-header">Calculations used &amp; sources</div>
+        <div class="card-body">
+          <div class="row g-4">
+            <div class="col-lg-7">
+              <h2 class="h6">Equations (DNV-CG-129, July 2026 ed., Appendix C)</h2>
+              <ul class="formula-list mb-3">
+                <li>Weibull long-term stress-range distribution (App. C 2.1): <code>Q(&Delta;&sigma;) = exp(&minus;(&Delta;&sigma;/q)^&xi;)</code>, <code>q = &Delta;&sigma;&#8320; / (ln n&#8320;)^(1/&xi;)</code>, equivalently <code>&Delta;&sigma; = &Delta;&sigma;&#8320; &middot; [ln n / ln n&#8320;]^(1/&xi;)</code></li>
+                <li>Weibull slope parameter from rule length: <code>&xi; = 2.21 &minus; 0.54&middot;log&#8321;&#8320;(L)</code></li>
+                <li>Damage estimate, one-slope S-N curve (App. C 2.2): <code>D = (N_D / K&#8322;) &middot; q^m &middot; &Gamma;(1 + m/&xi;) &le; &eta;</code></li>
+                <li>Total cycles in design life: <code>N_D = 31.557&middot;10&#8310; &middot; T_D &middot; f&#8320; &middot; v&#8320;</code>, with average zero-crossing frequency <code>v&#8320; = 1 / (4&middot;log&#8321;&#8320;(L))</code> (Hz)</li>
+                <li>One-slope S-N curve (Sec. 2.3, Table 1, FAT X row): <code>N = K&#8322; &middot; &Delta;&sigma;^(&minus;m)</code>, &Delta;&sigma; in MPa (N/mm&sup2;); m = 3: <code>log K&#8322; = 6.301 + 3&middot;log&#8321;&#8320;(X)</code>; m = 5: <code>log K&#8322; = 7 + 5&middot;log&#8321;&#8320;(0.585&middot;X)</code></li>
+                <li>Fatigue life (linear accumulation / Miner): <code>T_f = T_D / D</code>; equivalent constant-amplitude stress range <code>S_eq = (D&middot;K&#8322; / N_D)^(1/m)</code> (D = N_D / N(S_eq))</li>
+                <li>&Gamma; evaluated with a Lanczos approximation (complete gamma function).</li>
+              </ul>
+              <p class="small text-body-secondary mb-0">Stresses are in MPa (N/mm&sup2;) because the DNV S-N curves define K&#8322; in (N/mm&sup2;)^m; f&#8320; is entered in % and used as a fraction. One-slope S-N curves give conservative fatigue-life estimates compared to two-slope curves (App. C 2.2).</p>
+            </div>
+            <div class="col-lg-5">
+              <h2 class="h6">Sources</h2>
+              <ul class="small mb-0">
+                <li>DNV-CG-129, July 2026 edition &mdash; Appendix C 2.1 (Weibull long-term stress distribution), Appendix C 2.2 &ldquo;Damage estimate for one-slope S-N curves and Weibull distribution&rdquo;, Sec. 2.3 Table 1 (S-N curve parameters, FAT classes B1&ndash;F and FAT X).</li>
+                <li>Engineer&rsquo;s Excel automation of App. C 2.2 (internal, 2026) &mdash; used as the verification example: &Delta;&sigma;&#8320; = 160 MPa, X = 62 MPa, f&#8320; = 50 %, T_D = 25 y, L = 150 m, n&#8320; = 10&#7511;, m = 3 &rarr; D &asymp; 0.652, fatigue life &asymp; 38.3 y.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="dashboard-footer text-center small text-body-secondary py-3 border-top">
+    <span class="last-updated" id="last-updated"></span>
+    TG2026 - Make sure you validate your calculations before using them for professional purposes.
+  </footer>
+
+  <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="../assets/vendor/plotly/plotly-cartesian.min.js"></script>
+  <script src="../assets/js/template.js"></script>
+  <script src="../assets/js/tools.js"></script>
+  <script src="../assets/js/fatigue-damage.js?v=1a2b3c4d"></script>
+</body>
+</html>
