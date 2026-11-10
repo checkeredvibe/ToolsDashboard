@@ -140,17 +140,34 @@
 
   let lastCurves = null;
 
+  // Decade-only tick labels in scientific notation: 1, 10, 100, 1e3, ... / 1, 0.1, 0.01, 1e-3, ...
+  function sciText(e) {
+    if (e >= 0) return e < 3 ? String(Math.pow(10, e)) : '1e' + e;
+    return e > -3 ? String(Math.pow(10, e)) : '1e' + e;
+  }
+
+  function decadeTicks(eMin, eMax) {
+    const tickvals = [];
+    const ticktext = [];
+    for (let e = eMin; e <= eMax; e++) {
+      tickvals.push(Math.pow(10, e));
+      ticktext.push(sciText(e));
+    }
+    return { tickvals, ticktext };
+  }
+
+  // S-N curve plotted as stress range vs cycles: x = N (log axis), y = Δσ (linear)
   function snCurve(p, r) {
-    const sMax = Math.max(1000, 3 * p.dS0, 3 * r.sEq);
-    const xs = [];
-    const ys = [];
+    const sMax = Math.max(200, 2.5 * p.dS0, 2.5 * r.sEq);
+    const ns = [];
+    const ss = [];
     const n = 200;
     for (let i = 0; i <= n; i++) {
       const s = Math.pow(10, (Math.log10(sMax) * i) / n); // 1 .. sMax, log spaced
-      xs.push(s);
-      ys.push(r.K2 * Math.pow(s, -p.m));
+      ss.push(s);
+      ns.push(r.K2 * Math.pow(s, -p.m));
     }
-    return { xs, ys };
+    return { ns, ss, sMax, nMin: r.K2 * Math.pow(sMax, -p.m), nMax: r.K2 };
   }
 
   function weibullCurve(p, r) {
@@ -174,21 +191,27 @@
     const wb = weibullCurve(p, r);
     lastCurves = { sn, wb };
 
+    const eMin = Math.floor(Math.log10(sn.nMin));
+    const eMax = Math.ceil(Math.log10(sn.nMax));
+    const nTicks = decadeTicks(eMin, eMax);
+    const yTop = sn.sMax * 1.05;
+
     Plotly.react(els.plotSn, [
-      { x: sn.xs, y: sn.ys, mode: 'lines', line: { color: colors.accent, width: 2 }, name: 'S-N curve, m = ' + p.m },
-      { x: [Math.min(...sn.xs), Math.max(...sn.xs)], y: [r.ND, r.ND], mode: 'lines', line: { color: colors.font, width: 1, dash: 'dash' }, name: 'N_D = ' + fmtVal(r.ND) },
-      { x: [p.dS0], y: [r.K2 * Math.pow(p.dS0, -p.m)], mode: 'markers', marker: { size: 10, color: colors.warn, symbol: 'x' }, name: 'Δσ₀ = ' + fmtVal(p.dS0) + ' MPa' },
-      { x: [r.sEq], y: [r.ND], mode: 'markers', marker: { size: 10, color: colors.font, symbol: 'diamond' }, name: 'S_eq = ' + fmtVal(r.sEq) + ' MPa (damage D at N_D)' }
+      { x: sn.ns, y: sn.ss, mode: 'lines', line: { color: colors.accent, width: 2 }, name: 'S-N curve, m = ' + p.m },
+      { x: [r.ND, r.ND], y: [0, yTop], mode: 'lines', line: { color: colors.font, width: 1, dash: 'dash' }, name: 'N_D = ' + fmtVal(r.ND) },
+      { x: [r.K2 * Math.pow(p.dS0, -p.m)], y: [p.dS0], mode: 'markers', marker: { size: 10, color: colors.warn, symbol: 'x' }, name: 'Δσ₀ = ' + fmtVal(p.dS0) + ' MPa' },
+      { x: [r.ND], y: [r.sEq], mode: 'markers', marker: { size: 10, color: colors.font, symbol: 'diamond' }, name: 'S_eq = ' + fmtVal(r.sEq) + ' MPa (damage D at N_D)' }
     ], {
-      title: 'One-slope S-N curve (log-log)',
+      title: 'One-slope S-N curve',
       margin: { t: 40, r: 20, b: 45, l: 70 },
       paper_bgcolor: colors.paper,
       plot_bgcolor: colors.paper,
       font: { color: colors.font },
-      xaxis: { title: 'stress range Δσ (MPa)', type: 'log', gridcolor: colors.grid, zeroline: false },
-      yaxis: { title: 'N (cycles)', type: 'log', gridcolor: colors.grid, zeroline: false }
+      xaxis: { title: 'N (cycles)', type: 'log', tickvals: nTicks.tickvals, ticktext: nTicks.ticktext, range: [eMin - 0.3, eMax + 0.3], gridcolor: colors.grid, zeroline: false },
+      yaxis: { title: 'stress range Δσ (MPa)', range: [0, yTop], gridcolor: colors.grid, zeroline: false }
     }, plotConfig);
 
+    const qTicks = decadeTicks(-10, 0);
     Plotly.react(els.plotWeibull, [
       { x: wb.xs, y: wb.ys, mode: 'lines', line: { color: colors.accent, width: 2 }, name: 'Q(Δσ), ξ = ' + fmtVal(r.xi) + ', q = ' + fmtVal(r.q) + ' MPa' },
       { x: [p.dS0], y: [1 / p.n0], mode: 'markers', marker: { size: 10, color: colors.warn, symbol: 'x' }, name: 'Δσ₀: Q = 1/n₀ = ' + fmtVal(1 / p.n0) }
@@ -199,7 +222,7 @@
       plot_bgcolor: colors.paper,
       font: { color: colors.font },
       xaxis: { title: 'stress range Δσ (MPa)', gridcolor: colors.grid, zeroline: false },
-      yaxis: { title: 'Q — probability of exceedance', type: 'log', range: [-10, 0], gridcolor: colors.grid, zeroline: false }
+      yaxis: { title: 'Q — probability of exceedance', type: 'log', tickvals: qTicks.tickvals, ticktext: qTicks.ticktext, range: [-10, 0], gridcolor: colors.grid, zeroline: false }
     }, plotConfig);
   }
 
@@ -259,9 +282,9 @@
 
   els.btnCsv.addEventListener('click', () => {
     if (!lastCurves) return;
-    const lines = ['dataset,stress_range_MPa,value'];
-    lastCurves.sn.xs.forEach((s, i) => lines.push('SN_curve,' + s + ',' + lastCurves.sn.ys[i]));
-    lastCurves.wb.xs.forEach((s, i) => lines.push('Weibull_Q,' + s + ',' + lastCurves.wb.ys[i]));
+    const lines = ['dataset,x,value'];
+    lastCurves.sn.ns.forEach((nv, i) => lines.push('SN_curve_N_cycles,' + nv + ',' + lastCurves.sn.ss[i]));
+    lastCurves.wb.xs.forEach((s, i) => lines.push('Weibull_Q_x_MPa,' + s + ',' + lastCurves.wb.ys[i]));
     const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
