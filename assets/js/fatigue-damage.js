@@ -12,8 +12,7 @@
     sliderDs0: $('slider-ds0'), numDs0: $('num-ds0'),
     sliderL: $('slider-l'), numL: $('num-l'),
     sliderF0: $('slider-f0'), numF0: $('num-f0'),
-    numFat: $('num-fat'), fatPreset: $('in-fat-preset'),
-    radiosM: Array.from(document.querySelectorAll('input[name="in-m"]')),
+    numFat: $('num-fat'), fatPreset: $('in-fat-preset'), numM: $('num-m'),
     numTd: $('num-td'), numN0: $('num-n0'), numEta: $('num-eta'),
     outD: $('out-d'), outStatus: $('out-status'), outLife: $('out-life'), outSeq: $('out-seq'),
     tableBody: $('out-table').querySelector('tbody')
@@ -33,17 +32,17 @@
     return Math.sqrt(2 * Math.PI) * Math.pow(t, z + 0.5) * Math.exp(-t) * x;
   }
 
-  // FAT X row, DNV-CG-129 Sec. 2.3 Table 1: m = 3 lower branch, m = 5 upper branch
+  // One-slope FAT X curve through the FAT point (N = 2e6 at Δσ = X),
+  // DNV-CG-129 Sec. 2.3 Table 1: for m = 3 this is the table's lower branch
   function logK2(m, X) {
-    return m === 5 ? 7 + 5 * Math.log10(0.585 * X) : 6.301 + 3 * Math.log10(X);
+    return 6.301 + m * Math.log10(X);
   }
 
   function readInputs() {
-    const radio = els.radiosM.find(r => r.checked);
     return {
       dS0: SI.parse(els.numDs0.value),          // MPa
       X: SI.parse(els.numFat.value),            // MPa (FAT class)
-      m: radio ? Number(radio.value) : 3,       // 3 or 5
+      m: SI.parse(els.numM.value),              // - (default 3)
       f0: SI.parse(els.numF0.value) / 100,      // fraction (input in %)
       TD: SI.parse(els.numTd.value),            // years
       L: SI.parse(els.numL.value),              // m
@@ -55,10 +54,10 @@
   function valid(p) {
     return Number.isFinite(p.dS0) && p.dS0 > 0 &&
       Number.isFinite(p.X) && p.X > 0 &&
-      (p.m === 3 || p.m === 5) &&
+      Number.isFinite(p.m) && p.m > 0 &&
       Number.isFinite(p.f0) && p.f0 >= 0 && p.f0 <= 1 &&
       Number.isFinite(p.TD) && p.TD > 0 &&
-      Number.isFinite(p.L) && p.L > 1 &&
+      Number.isFinite(p.L) && p.L >= 20 && p.L <= 300 &&
       Number.isFinite(p.n0) && p.n0 > 1 &&
       Number.isFinite(p.eta) && p.eta > 0 &&
       (2.21 - 0.54 * Math.log10(p.L)) > 0;
@@ -153,10 +152,10 @@
   }
 
   wireSliderNum(els.sliderDs0, els.numDs0, 1, 500);
-  wireSliderNum(els.sliderL, els.numL, 10, 600);
+  wireSliderNum(els.sliderL, els.numL, 20, 300);
   wireSliderNum(els.sliderF0, els.numF0, 0, 100);
 
-  [els.numFat, els.numTd, els.numN0, els.numEta].forEach(el => el.addEventListener('input', update));
+  [els.numFat, els.numM, els.numTd, els.numN0, els.numEta].forEach(el => el.addEventListener('input', update));
 
   els.fatPreset.addEventListener('change', () => {
     if (els.fatPreset.value !== 'custom') {
@@ -164,8 +163,6 @@
     }
     update();
   });
-
-  els.radiosM.forEach(r => r.addEventListener('change', update));
 
   update();
 })();
