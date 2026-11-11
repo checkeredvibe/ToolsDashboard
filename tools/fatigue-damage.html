@@ -6,7 +6,7 @@
   <meta name="description" content="Fatigue damage D estimator: one-slope S-N curve with Weibull long-term stress-range distribution (DNV-CG-129 App. C 2.2). Stress in MPa (N/mm^2), offline.">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <title>Tool: Fatigue Damage Calculator</title>
-  <meta name="last-updated" content="2026-11-10T17:16:38Z">
+  <meta name="last-updated" content="2026-11-11T19:49:51Z">
   <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/css/template.css">
 </head>
@@ -41,7 +41,7 @@
                   <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-ds0" min="1" max="500" step="any" value="160">
                 </div>
               </div>
-              <div class="form-text">e.g. hot-spot stress range at the detail of interest (Excel: &ldquo;Stress range E-deck&rdquo;).</div>
+              <div class="form-text">e.g. the hot-spot stress range at the detail of interest.</div>
             </div>
           </div>
 
@@ -140,24 +140,7 @@
         </div>
 
         <div class="card">
-          <div class="card-header">One-slope S-N curve, N = K&#8322; &middot; &Delta;&sigma;<sup>&minus;m</sup> &mdash; N on log x-axis (decades only), &Delta;&sigma; linear on y-axis</div>
-          <div class="card-body">
-            <div id="out-plot-sn" class="tool-plot"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">Weibull long-term exceedance Q(&Delta;&sigma;) = exp(&minus;(&Delta;&sigma;/q)<sup>&xi;</sup>)</div>
-          <div class="card-body">
-            <div id="out-plot-weibull" class="tool-plot"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <span>Results</span>
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-csv">Download curve data (CSV)</button>
-          </div>
+          <div class="card-header">Results</div>
           <div class="card-body table-responsive">
             <table class="table table-sm table-striped mb-0" id="out-table">
               <thead>
@@ -192,7 +175,6 @@
               <h2 class="h6">Sources</h2>
               <ul class="small mb-0">
                 <li>DNV-CG-129, July 2026 edition &mdash; Appendix C 2.1 (Weibull long-term stress distribution), Appendix C 2.2 &ldquo;Damage estimate for one-slope S-N curves and Weibull distribution&rdquo;, Sec. 2.3 Table 1 (S-N curve parameters, FAT classes B1&ndash;F and FAT X).</li>
-                <li>Engineer&rsquo;s Excel automation of App. C 2.2 (internal, 2026) &mdash; used as the verification example: &Delta;&sigma;&#8320; = 160 MPa, X = 62 MPa, f&#8320; = 50 %, T_D = 25 y, L = 150 m, n&#8320; = 10&#7511;, m = 3 &rarr; D &asymp; 0.652, fatigue life &asymp; 38.3 y.</li>
               </ul>
             </div>
           </div>
@@ -207,9 +189,8 @@
   </footer>
 
   <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
-  <script src="../assets/vendor/plotly/plotly-cartesian.min.js"></script>
   <script src="../assets/js/template.js"></script>
   <script src="../assets/js/tools.js"></script>
-  <script src="../assets/js/fatigue-damage.js?v=1a2b3c4d"></script>
+  <script src="../assets/js/fatigue-damage.js?v=5e6f7a8b"></script>
 </body>
 </html>

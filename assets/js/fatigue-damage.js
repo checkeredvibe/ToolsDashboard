@@ -16,9 +16,7 @@
     radiosM: Array.from(document.querySelectorAll('input[name="in-m"]')),
     numTd: $('num-td'), numN0: $('num-n0'), numEta: $('num-eta'),
     outD: $('out-d'), outStatus: $('out-status'), outLife: $('out-life'), outSeq: $('out-seq'),
-    plotSn: $('out-plot-sn'), plotWeibull: $('out-plot-weibull'),
-    tableBody: $('out-table').querySelector('tbody'),
-    btnCsv: $('btn-csv')
+    tableBody: $('out-table').querySelector('tbody')
   };
 
   // Lanczos approximation of the complete gamma function
@@ -88,17 +86,6 @@
     return String(Number(v.toPrecision(4)));
   }
 
-  function themeColors() {
-    const dark = document.documentElement.dataset.bsTheme === 'dark';
-    return {
-      grid: dark ? '#35347a' : '#d5d7ea',
-      font: dark ? '#f1f2fa' : '#1f2340',
-      paper: dark ? '#1e1f4d' : '#ffffff',
-      accent: dark ? '#ffe58a' : '#272974',
-      warn: dark ? '#ff9a9a' : '#b00020'
-    };
-  }
-
   function renderNumbers(p, r) {
     els.outD.textContent = fmtVal(r.D);
     els.outLife.textContent = SI.format(r.life, 'years');
@@ -138,94 +125,6 @@
       .join('');
   }
 
-  let lastCurves = null;
-
-  // Decade-only tick labels in scientific notation: 1, 10, 100, 1e3, ... / 1, 0.1, 0.01, 1e-3, ...
-  function sciText(e) {
-    if (e >= 0) return e < 3 ? String(Math.pow(10, e)) : '1e' + e;
-    return e > -3 ? String(Math.pow(10, e)) : '1e' + e;
-  }
-
-  function decadeTicks(eMin, eMax) {
-    const tickvals = [];
-    const ticktext = [];
-    for (let e = eMin; e <= eMax; e++) {
-      tickvals.push(Math.pow(10, e));
-      ticktext.push(sciText(e));
-    }
-    return { tickvals, ticktext };
-  }
-
-  // S-N curve plotted as stress range vs cycles: x = N (log axis), y = Δσ (linear)
-  function snCurve(p, r) {
-    const sMax = Math.max(200, 2.5 * p.dS0, 2.5 * r.sEq);
-    const ns = [];
-    const ss = [];
-    const n = 200;
-    for (let i = 0; i <= n; i++) {
-      const s = Math.pow(10, (Math.log10(sMax) * i) / n); // 1 .. sMax, log spaced
-      ss.push(s);
-      ns.push(r.K2 * Math.pow(s, -p.m));
-    }
-    return { ns, ss, sMax, nMin: r.K2 * Math.pow(sMax, -p.m), nMax: r.K2 };
-  }
-
-  function weibullCurve(p, r) {
-    const xMax = Math.max(2.5 * p.dS0, 10 * r.q);
-    const xs = [];
-    const ys = [];
-    const n = 200;
-    for (let i = 0; i <= n; i++) {
-      const s = (xMax * i) / n;
-      xs.push(s);
-      ys.push(Math.exp(-Math.pow(s / r.q, r.xi)));
-    }
-    return { xs, ys };
-  }
-
-  const plotConfig = { responsive: true, displaylogo: false };
-
-  function renderPlots(p, r) {
-    const colors = themeColors();
-    const sn = snCurve(p, r);
-    const wb = weibullCurve(p, r);
-    lastCurves = { sn, wb };
-
-    const eMin = Math.floor(Math.log10(sn.nMin));
-    const eMax = Math.ceil(Math.log10(sn.nMax));
-    const nTicks = decadeTicks(eMin, eMax);
-    const yTop = sn.sMax * 1.05;
-
-    Plotly.react(els.plotSn, [
-      { x: sn.ns, y: sn.ss, mode: 'lines', line: { color: colors.accent, width: 2 }, name: 'S-N curve, m = ' + p.m },
-      { x: [r.ND, r.ND], y: [0, yTop], mode: 'lines', line: { color: colors.font, width: 1, dash: 'dash' }, name: 'N_D = ' + fmtVal(r.ND) },
-      { x: [r.K2 * Math.pow(p.dS0, -p.m)], y: [p.dS0], mode: 'markers', marker: { size: 10, color: colors.warn, symbol: 'x' }, name: 'Δσ₀ = ' + fmtVal(p.dS0) + ' MPa' },
-      { x: [r.ND], y: [r.sEq], mode: 'markers', marker: { size: 10, color: colors.font, symbol: 'diamond' }, name: 'S_eq = ' + fmtVal(r.sEq) + ' MPa (damage D at N_D)' }
-    ], {
-      title: 'One-slope S-N curve',
-      margin: { t: 40, r: 20, b: 45, l: 70 },
-      paper_bgcolor: colors.paper,
-      plot_bgcolor: colors.paper,
-      font: { color: colors.font },
-      xaxis: { title: 'N (cycles)', type: 'log', tickvals: nTicks.tickvals, ticktext: nTicks.ticktext, range: [eMin - 0.3, eMax + 0.3], gridcolor: colors.grid, zeroline: false },
-      yaxis: { title: 'stress range Δσ (MPa)', range: [0, yTop], gridcolor: colors.grid, zeroline: false }
-    }, plotConfig);
-
-    const qTicks = decadeTicks(-10, 0);
-    Plotly.react(els.plotWeibull, [
-      { x: wb.xs, y: wb.ys, mode: 'lines', line: { color: colors.accent, width: 2 }, name: 'Q(Δσ), ξ = ' + fmtVal(r.xi) + ', q = ' + fmtVal(r.q) + ' MPa' },
-      { x: [p.dS0], y: [1 / p.n0], mode: 'markers', marker: { size: 10, color: colors.warn, symbol: 'x' }, name: 'Δσ₀: Q = 1/n₀ = ' + fmtVal(1 / p.n0) }
-    ], {
-      title: 'Weibull long-term exceedance probability',
-      margin: { t: 40, r: 20, b: 45, l: 70 },
-      paper_bgcolor: colors.paper,
-      plot_bgcolor: colors.paper,
-      font: { color: colors.font },
-      xaxis: { title: 'stress range Δσ (MPa)', gridcolor: colors.grid, zeroline: false },
-      yaxis: { title: 'Q — probability of exceedance', type: 'log', tickvals: qTicks.tickvals, ticktext: qTicks.ticktext, range: [-10, 0], gridcolor: colors.grid, zeroline: false }
-    }, plotConfig);
-  }
-
   function clearOutputs() {
     els.outD.textContent = '—';
     els.outLife.textContent = '—';
@@ -233,36 +132,24 @@
     els.outStatus.textContent = '—';
     els.outStatus.className = 'badge';
     els.tableBody.innerHTML = '';
-    Plotly.purge(els.plotSn);
-    Plotly.purge(els.plotWeibull);
   }
 
-  function updateLight() {
-    const p = readInputs();
-    if (!valid(p)) { clearOutputs(); return; }
-    const r = compute(p);
-    renderNumbers(p, r);
-    renderTable(p, r);
-  }
-
+  // Single update path: every input change re-renders all outputs live
   function update() {
     const p = readInputs();
     if (!valid(p)) { clearOutputs(); return; }
     const r = compute(p);
     renderNumbers(p, r);
     renderTable(p, r);
-    renderPlots(p, r);
   }
 
   function wireSliderNum(slider, num, min, max) {
-    slider.addEventListener('input', () => { num.value = slider.value; updateLight(); });
-    slider.addEventListener('change', update);
+    slider.addEventListener('input', () => { num.value = slider.value; update(); });
     num.addEventListener('input', () => {
       const v = SI.parse(num.value);
       if (Number.isFinite(v)) slider.value = Math.min(Math.max(v, min), max);
-      updateLight();
+      update();
     });
-    num.addEventListener('change', update);
   }
 
   wireSliderNum(els.sliderDs0, els.numDs0, 1, 500);
@@ -279,22 +166,6 @@
   });
 
   els.radiosM.forEach(r => r.addEventListener('change', update));
-
-  els.btnCsv.addEventListener('click', () => {
-    if (!lastCurves) return;
-    const lines = ['dataset,x,value'];
-    lastCurves.sn.ns.forEach((nv, i) => lines.push('SN_curve_N_cycles,' + nv + ',' + lastCurves.sn.ss[i]));
-    lastCurves.wb.xs.forEach((s, i) => lines.push('Weibull_Q_x_MPa,' + s + ',' + lastCurves.wb.ys[i]));
-    const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'fatigue-damage-curves.csv';
-    a.click();
-    URL.revokeObjectURL(a.href);
-  });
-
-  new MutationObserver(() => { if (els.plotSn.data) update(); })
-    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
 
   update();
 })();
