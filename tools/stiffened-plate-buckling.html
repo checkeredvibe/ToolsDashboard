@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Stiffened panel buckling capacity per DNV-CG-0128 (Dec 2023) closed form method: overall panel, plate EPP and stiffener SI/PI checks with utilization and limit buckling stress. Stresses in N/mm^2, offline.">
+  <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+  <title>Tool: Stiffened Plate Buckling</title>
+  <meta name="last-updated" content="2026-11-12T21:30:00Z">
+  <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="../assets/css/template.css">
+</head>
+<body>
+  <nav class="navbar sticky-top dashboard-header">
+    <div class="container-xl">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="../index.html">
+        <img src="../assets/img/logo-navbar.png" alt="Logo" class="navbar-logo">
+        <span class="fw-semibold">&larr; Engineering Tools Dashboard</span>
+      </a>
+      <button id="theme-toggle" class="btn btn-sm btn-outline-secondary ms-auto" type="button" aria-label="Toggle light/dark theme">&#127769;</button>
+    </div>
+  </nav>
+
+  <main class="container-xl py-4">
+    <h1 class="h3 mb-1">Stiffened Plate Buckling &mdash; DNV-CG-0128 CFM</h1>
+    <p class="text-body-secondary small mb-4">Buckling capacity of a stiffened panel per DNV-CG-0128 (Edition December 2023), Sec.3 closed form method: overall stiffened panel capacity ([3.1]), elementary plate panel capacity ([3.2], Table 3 cases 1/2/15) and stiffener checks for stiffener induced (SI) and plate induced (PI) failure ([3.3.4], Table 5). Outputs the utilization factor &eta; per limit state and the limit buckling stress &gamma;<sub>c</sub>&middot;&sigma; per [2.1.3]. Sign convention of the guideline: <em>compressive stresses are positive</em>. Stresses in N/mm&sup2;, lateral pressure in kN/m&sup2;, lengths and thicknesses in mm (net scantlings). All local &mdash; no network.</p>
+
+    <div class="tool-layout">
+      <!-- ============ LEFT: INPUT TILES (30%) ============ -->
+      <div class="d-flex flex-column gap-3" id="input-tiles">
+        <h2 class="tool-col-header mb-0">Input</h2>
+        <form id="tool-inputs" novalidate class="d-flex flex-column gap-3">
+
+          <div class="card">
+            <div class="card-header">Panel geometry (net scantlings)</div>
+            <div class="card-body">
+              <div class="mb-3">
+                <label class="form-label mb-1" for="num-s">Stiffener spacing s (mm)</label>
+                <div class="d-flex gap-2 align-items-center">
+                  <input type="range" class="form-range flex-grow-1" id="slider-s" min="100" max="2000" step="10" value="800">
+                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-s" min="10" max="5000" step="any" value="800">
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label mb-1" for="num-l">Stiffener span &ell; between PSMs (mm)</label>
+                <div class="d-flex gap-2 align-items-center">
+                  <input type="range" class="form-range flex-grow-1" id="slider-l" min="200" max="6000" step="10" value="2400">
+                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-l" min="50" max="10000" step="any" value="2400">
+                </div>
+              </div>
+              <div class="mb-0">
+                <label class="form-label mb-1" for="num-tp">Net plate thickness t<sub>p</sub> (mm)</label>
+                <div class="d-flex gap-2 align-items-center">
+                  <input type="range" class="form-range flex-grow-1" id="slider-tp" min="4" max="40" step="0.5" value="15">
+                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-tp" min="1" max="100" step="any" value="15">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Stiffener profile</div>
+            <div class="card-body">
+              <label for="in-profile" class="form-label">Profile type</label>
+              <select class="form-select mb-3" id="in-profile">
+                <option value="T" selected>T profile</option>
+                <option value="angle">Angle profile</option>
+                <option value="bulb">Bulb profile (idealized as equivalent angle, DNV-RU-SHIP Pt.3 Ch.3 Sec.7 [1.4.1])</option>
+                <option value="flat">Flat bar</option>
+              </select>
+              <div class="mb-3">
+                <label class="form-label mb-1" for="num-hw">Web height h<sub>w</sub> (mm)</label>
+                <div class="d-flex gap-2 align-items-center">
+                  <input type="range" class="form-range flex-grow-1" id="slider-hw" min="50" max="500" step="5" value="200">
+                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-hw" min="10" max="1000" step="any" value="200">
+                </div>
+              </div>
+              <div class="mb-0">
+                <label class="form-label mb-1" for="num-tw">Net web thickness t<sub>w</sub> (mm)</label>
+                <div class="d-flex gap-2 align-items-center">
+                  <input type="range" class="form-range flex-grow-1" id="slider-tw" min="3" max="30" step="0.5" value="10">
+                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-tw" min="1" max="50" step="any" value="10">
+                </div>
+              </div>
+              <div id="flange-row">
+                <hr>
+                <div class="mb-3">
+                  <label class="form-label mb-1" for="num-bf">Flange breadth b<sub>f</sub> (mm)</label>
+                  <div class="d-flex gap-2 align-items-center">
+                    <input type="range" class="form-range flex-grow-1" id="slider-bf" min="20" max="400" step="5" value="60">
+                    <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-bf" min="5" max="500" step="any" value="60">
+                  </div>
+                </div>
+                <div class="mb-0">
+                  <label class="form-label mb-1" for="num-tf">Net flange thickness t<sub>f</sub> (mm)</label>
+                  <div class="d-flex gap-2 align-items-center">
+                    <input type="range" class="form-range flex-grow-1" id="slider-tf" min="3" max="40" step="0.5" value="12">
+                    <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-tf" min="1" max="50" step="any" value="12">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Material</div>
+            <div class="card-body">
+              <div class="mb-3">
+                <label class="form-label mb-1" for="num-rehp">Plate yield stress R<sub>eH,P</sub> (N/mm&sup2;)</label>
+                <input type="number" class="form-control" id="num-rehp" min="50" max="500" step="any" value="235">
+              </div>
+              <div class="mb-0">
+                <label class="form-label mb-1" for="num-rehs">Stiffener yield stress R<sub>eH,S</sub> (N/mm&sup2;)</label>
+                <input type="number" class="form-control" id="num-rehs" min="50" max="500" step="any" value="235">
+              </div>
+              <div class="form-text">Steel: E = 206000 N/mm&sup2;, &nu; = 0.3 (fixed).</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Applied loads</div>
+            <div class="card-body">
+              <div class="mb-2">
+                <label class="form-label mb-1" for="num-sx">&sigma;<sub>x</sub> along stiffener axis (N/mm&sup2;, compression +)</label>
+                <input type="number" class="form-control" id="num-sx" step="any" value="100">
+              </div>
+              <div class="mb-2">
+                <label class="form-label mb-1" for="num-sy">&sigma;<sub>y</sub> transverse (N/mm&sup2;, compression +)</label>
+                <input type="number" class="form-control" id="num-sy" step="any" value="50">
+              </div>
+              <div class="mb-2">
+                <label class="form-label mb-1" for="num-tau">Shear stress &tau; (N/mm&sup2;)</label>
+                <input type="number" class="form-control" id="num-tau" step="any" value="30">
+              </div>
+              <div class="mb-2">
+                <label class="form-label mb-1" for="num-p">Lateral pressure P (kN/m&sup2;, constant per [2.1.5])</label>
+                <input type="number" class="form-control" id="num-p" step="any" value="10">
+              </div>
+              <div class="mb-2">
+                <label class="form-label mb-1" for="num-psix">Edge stress ratio &psi;<sub>x</sub> = &sigma;<sub>2</sub>/&sigma;<sub>1</sub> along x (&ndash;)</label>
+                <input type="number" class="form-control" id="num-psix" min="-2" max="1" step="any" value="1">
+              </div>
+              <div class="mb-2">
+                <label class="form-label mb-1" for="num-psiy">Edge stress ratio &psi;<sub>y</sub> transverse (&ndash;)</label>
+                <input type="number" class="form-control" id="num-psiy" min="-2" max="1" step="any" value="1">
+              </div>
+              <div class="mb-0">
+                <label class="form-label mb-1" for="in-pside">Lateral pressure applied on</label>
+                <select class="form-select" id="in-pside">
+                  <option value="opposite" selected>Side opposite to the stiffener</option>
+                  <option value="same">Same side as the stiffener</option>
+                </select>
+              </div>
+              <div class="form-text">Stresses to be taken as defined in [3.2.7] (FE reference stresses, prescriptive LCP stresses or grillage-corrected).</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Assessment settings</div>
+            <div class="card-body">
+              <div class="mb-2">
+                <label class="form-label mb-1" for="in-method">Stress source</label>
+                <select class="form-select" id="in-method">
+                  <option value="prescriptive" selected>Prescriptive assessment</option>
+                  <option value="FE">FE analysis (applies [3.3.6] correction to &sigma;<sub>x</sub>)</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label mb-1" for="in-panel-type">Panel type (c<sub>1</sub> for C<sub>y</sub>, [3.2.3])</label>
+                <select class="form-select" id="in-panel-type">
+                  <option value="SP-A" selected>SP-A: c&#8321; = (1 &minus; 1/&alpha;) &ge; 0</option>
+                  <option value="SP-B">SP-B: c&#8321; = 1</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label mb-1" for="in-endcond">Stiffener end condition</label>
+                <select class="form-select" id="in-endcond">
+                  <option value="fixed" selected>Continuous, fixed at both ends</option>
+                  <option value="one-fixed">Simply supported at one end, fixed at the other</option>
+                  <option value="ss">Simply supported at both ends</option>
+                  <option value="sniped">Sniped at one or both ends</option>
+                </select>
+                <div class="form-text">Drives &ell;<sub>eff</sub>/b<sub>eff</sub> ([3.3.5]), M&#8321;/M&#8322; ([3.3.4]) and F<sub>long</sub> ([3.2.4]).</div>
+              </div>
+              <div class="mb-2">
+                <label class="form-label mb-1" for="in-s">Safety factor S ([3.1] symbols)</label>
+                <select class="form-select" id="in-s">
+                  <option value="1.0" selected>S = 1.0 (general)</option>
+                  <option value="1.1">S = 1.1 (local concentrated loads)</option>
+                  <option value="1.15">S = 1.15 (bulk carrier members, Pt.3 Ch.8)</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label mb-1" for="num-ltor">&ell;<sub>tor</sub> &mdash; tripping bracket spacing (mm, = &ell; if none)</label>
+                <input type="number" class="form-control" id="num-ltor" min="10" step="any" value="2400">
+              </div>
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="in-lb1">
+                <label class="form-check-label" for="in-lb1">Stiffener ends continuous/bracketed near horizontal neutral axis (L<sub>B1</sub> = 0.8&ell;)</label>
+              </div>
+              <div class="mb-0">
+                <label class="form-label mb-1" for="num-eta-all">Allowable utilization &eta;<sub>all</sub> (&ndash;)</label>
+                <input type="number" class="form-control" id="num-eta-all" min="0.01" max="10" step="any" value="1">
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- ============ RIGHT: OUTPUT FIELDS (70%) ============ -->
+      <div class="d-flex flex-column gap-3">
+        <h2 class="tool-col-header mb-0">Output</h2>
+
+        <div class="card">
+          <div class="card-header">Buckling utilization</div>
+          <div class="card-body">
+            <div class="row g-3 text-center">
+              <div class="col-6 col-md-3">
+                <div class="text-body-secondary small">Governing utilization &eta;</div>
+                <div class="result-value fs-4" id="out-eta">&mdash;</div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-body-secondary small">Governing mode</div>
+                <div class="fs-5 mt-2"><span class="badge text-bg-secondary" id="out-mode">&mdash;</span></div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-body-secondary small">Stress multiplier &gamma;<sub>c</sub></div>
+                <div class="result-value fs-4" id="out-gc">&mdash;</div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-body-secondary small">Status vs &eta;<sub>all</sub></div>
+                <div class="fs-5 mt-2"><span class="badge text-bg-secondary" id="out-status">&mdash;</span></div>
+              </div>
+            </div>
+            <div id="out-warn" class="mt-2"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Limit buckling stresses (&gamma;<sub>c</sub> &times; applied, [2.1.3])</div>
+          <div class="card-body">
+            <div class="row g-3 text-center">
+              <div class="col-4">
+                <div class="text-body-secondary small">&sigma;<sub>x,limit</sub></div>
+                <div class="result-value fs-4" id="out-sx-lim">&mdash;</div>
+              </div>
+              <div class="col-4">
+                <div class="text-body-secondary small">&sigma;<sub>y,limit</sub></div>
+                <div class="result-value fs-4" id="out-sy-lim">&mdash;</div>
+              </div>
+              <div class="col-4">
+                <div class="text-body-secondary small">&tau;<sub>limit</sub></div>
+                <div class="result-value fs-4" id="out-tau-lim">&mdash;</div>
+              </div>
+            </div>
+            <div class="form-text mt-2">The full applied stress combination scaled proportionally by the governing &gamma;<sub>c</sub>; the lateral pressure P is kept constant ([2.1.5]).</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Utilization per limit state</div>
+          <div class="card-body">
+            <div id="out-plot" class="plot-box"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Utilization per limit state (table)</div>
+          <div class="card-body table-responsive">
+            <table class="table table-sm table-striped mb-0" id="out-util-table">
+              <thead>
+                <tr><th>Limit state</th><th>&gamma;<sub>c</sub> (&ndash;)</th><th>&eta; = 1/&gamma;<sub>c</sub> (&ndash;)</th><th>Status</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Intermediate results</div>
+          <div class="card-body table-responsive" style="max-height: 26rem; overflow-y: auto;">
+            <table class="table table-sm table-striped mb-0" id="out-detail-table">
+              <thead>
+                <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============ BOTTOM: CALCULATIONS & SOURCES (100%) ============ -->
+      <div class="card tool-bottom">
+        <div class="card-header">Calculations used &amp; sources</div>
+        <div class="card-body">
+          <div class="row g-4">
+            <div class="col-lg-7">
+              <h2 class="h6">Equations (DNV-CG-0128, Edition December 2023, Sec.3 CFM)</h2>
+              <ul class="formula-list mb-3">
+                <li>Overall stiffened panel capacity ([3.1.1]&ndash;[3.1.4]): <code>&gamma;/&gamma;<sub>GEB</sub> = 1</code>; orthotropic stiffnesses <code>D&#8321;&#8321; = E&middot;I<sub>eff</sub>&middot;10&#8308;/s</code>, <code>D&#8321;&#8322; = &nu;D&#8322;&#8322;</code>, <code>D&#8322;&#8322; = E&middot;t<sub>p</sub>&sup3;/(12(1&minus;&nu;&sup2;))</code>, <code>D&#8323;&#8323; = E&middot;t<sub>p</sub>&sup3;/(12(1+&nu;))</code>; <code>&gamma;<sub>GEB,bi</sub></code> minimized over the integer half-wave number n with <code>L<sub>B1</sub> = &ell;</code> (0.8&ell; continuous/bracketed), <code>L<sub>B2</sub> = 6s</code>; <code>N<sub>x</sub> = &sigma;<sub>x,av</sub>(A<sub>p</sub>+A<sub>s</sub>)/s</code> with Poisson-corrected <code>&sigma;<sub>x,av</sub></code>, <code>N<sub>y</sub> = c&middot;&sigma;<sub>y</sub>t<sub>p</sub></code>; pure shear <code>&gamma;<sub>GEB,&tau;</sub></code> (two-branch formula, <code>N<sub>xy</sub> = &tau;t<sub>p</sub></code>); combined <code>&gamma;<sub>GEB,bi+&tau;</sub></code> interaction.</li>
+                <li>Plate (EPP) capacity ([3.2.1]): interaction formulae for <code>&gamma;<sub>c1</sub>&hellip;&gamma;<sub>c4</sub></code> with reduction factors <code>C<sub>x</sub>,C<sub>y</sub>,C<sub>&tau;</sub></code> from Table 3 cases 1, 2 and 15 (simply supported), <code>&sigma;<sub>E</sub> = &pi;&sup2;E/(12(1&minus;&nu;&sup2;))&middot;(t<sub>p</sub>/b)&sup2;</code>, <code>&lambda; = &radic;(R<sub>eH,P</sub>/(K&sigma;<sub>E</sub>))</code>, coefficients <code>B</code>, <code>e&#8320;</code> and <code>&beta;<sub>p</sub></code> from Table 1; <code>F<sub>long</sub></code> from Table 2 (c = 0.10 flat, 0.30 bulb/T, 0.40 angle when fixed at both ends), <code>F<sub>tran</sub> = 1</code>, <code>c&#8321;</code> per SP-A/SP-B ([3.2.3]); <code>&gamma;<sub>c</sub> = min(&gamma;<sub>c1</sub>&hellip;&gamma;<sub>c4</sub>)</code>, <code>&eta; = 1/&gamma;<sub>c</sub></code>.</li>
+                <li>Stiffener capacity ([3.3.4]): <code>(&gamma;<sub>c</sub>&sigma;<sub>a</sub> + &sigma;<sub>b</sub> + &sigma;<sub>w</sub>)S/R<sub>eH</sub> = 1</code> solved iteratively for &gamma;<sub>c</sub> (SI: R<sub>eH,S</sub>, Z at flange top; PI: R<sub>eH,P</sub>, Z at attached plating); <code>&sigma;<sub>a</sub> = &sigma;<sub>x</sub>(st<sub>p</sub>+A<sub>s</sub>)/(b<sub>eff1</sub>t<sub>p</sub>+A<sub>s</sub>)</code>; <code>&sigma;<sub>b</sub> = (M&#8320;+M&#8321;+M&#8322;)/(1000Z)</code> with <code>M&#8320; = F<sub>E</sub>C<sub>sl</sub>(&gamma;/(&gamma;<sub>GEB</sub>&minus;&gamma;))w&#8320;</code>, <code>w&#8320; = &ell;/1000</code>, <code>C<sub>sl</sub></code> from the global slenderness <code>&lambda;<sub>G</sub></code>, <code>M&#8321; = C<sub>i</sub>|P|s&ell;&sup2;/(24&middot;10&sup3;)</code> (continuous; /8&middot;10&sup3; sniped), <code>M&#8322; = C<sub>snip</sub>w<sub>na</sub>&gamma;&sigma;<sub>x</sub>(A<sub>p</sub>+A<sub>s</sub>)</code> for sniped ends; torsional stress <code>&sigma;<sub>w</sub></code> (SI only, <code>&sigma;<sub>a</sub> &gt; 0</code>) with <code>&sigma;<sub>ET</sub></code> minimized over the half-wave number m<sub>tor</sub> using I<sub>P</sub>, I<sub>T</sub>, I<sub>&omega;</sub> from Table 5 and the degree of fixation <code>&epsilon;</code>.</li>
+                <li>Effective width of attached plating ([3.3.5]): <code>b<sub>eff1</sub> = C<sub>x</sub>b</sub> (=&sigma;<sub>x</sub>&gt;0) or b</code>; <code>b<sub>eff</sub> = min(b<sub>eff1</sub>; &chi;<sub>s</sub>s)</code> with <code>&chi;<sub>s</sub></code> from <code>&ell;<sub>eff</sub>/s</code> (&ell;/&radic;3 fixed, 0.75&ell; one end fixed, &ell; simply supported).</li>
+                <li>Flat bar reduced web thickness ([3.3.2]): <code>t<sub>w,red</sub> = t<sub>w</sub>[1 &minus; (2&pi;&sup2;/3)(h<sub>w</sub>/s)&sup2;(1 &minus; b<sub>eff1</sub>/s)]</code> used for A<sub>s</sub>, Z and I.</li>
+                <li>Section idealization: bulb as equivalent angle (DNV-RU-SHIP Pt.3 Ch.3 Sec.7 [1.4.1]); <code>e<sub>f</sub></code> = h<sub>w</sub> (flat), h<sub>w</sub>&minus;0.5t<sub>f</sub> (bulb), h<sub>w</sub>+0.5t<sub>f</sub> (angle/T).</li>
+                <li>Ultimate capacity and utilization per [2.1.3]/[2.1.4]: the applied combination is scaled proportionally until the governing interaction formula equals 1.0; <code>&eta; = 1/&gamma;<sub>c</sub></code>, limit buckling stress = <code>&gamma;<sub>c</sub>&middot;&sigma;</code>.</li>
+                <li>&gamma;<sub>c1</sub> of the plate interaction and &gamma;<sub>c</sub> of the stiffener checks are solved with bisection root-finding; &gamma;<sub>GEB,bi</sub> and &sigma;<sub>ET</sub> are minimized over integer half-wave numbers.</li>
+              </ul>
+              <p class="small text-body-secondary mb-0">Compressive stresses positive, tension negative; net scantlings (100% corrosion addition deducted). The plate check uses the EPP between stiffeners (a = &ell;, b = s, simply supported edges per [3.2.3]); U-type stiffeners, corrugated panels, curved plates and vertically stiffened plating specials (F<sub>tran</sub> &ne; 1) are out of scope for v1. Validate against a hand calculation or PULS before professional use.</p>
+            </div>
+            <div class="col-lg-5">
+              <h2 class="h6">Sources</h2>
+              <ul class="small mb-0">
+                <li>DNV-CG-0128 &ldquo;Buckling&rdquo;, Edition December 2023 (library &ldquo;DNV Class Guidelines&rdquo;) &mdash; Sec.2 [2.1.3]/[2.3] (ultimate capacity, utilization), Sec.3 [1] symbols and S factor, [3.1.1]&ndash;[3.1.4] (overall stiffened panel capacity), [3.2.1]&ndash;[3.2.5] + Table 1/Table 2/Table 3 cases 1, 2, 15 (plate capacity, F<sub>long</sub>, F<sub>tran</sub>, reduction factors), [3.2.7] (applied stresses), [3.3.2] (flat bar web), [3.3.3] (bulb idealization), [3.3.4] + Table 5 (stiffener SI/PI capacity, torsional buckling), [3.3.5] (effective width), [3.3.6] (FE-corrected stresses).</li>
+                <li>DNV-RU-SHIP Pt.3 Ch.3 Sec.7 [1.4.1] &mdash; idealization of bulb profiles as equivalent angles (referenced from [3.3.3]).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="dashboard-footer text-center small text-body-secondary py-3 border-top">
+    <span class="last-updated" id="last-updated"></span>
+    TG2026 - Make sure you validate your calculations before using them for professional purposes.
+  </footer>
+
+  <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="../assets/vendor/plotly/plotly-cartesian.min.js"></script>
+  <script src="../assets/js/template.js"></script>
+  <script src="../assets/js/tools.js"></script>
+  <script src="../assets/js/stiffened-plate-buckling.js?v=1a2b3c4d"></script>
+</body>
+</html>

@@ -72,6 +72,12 @@ All results use SI units. No external network resources are used — open
   click-to-read values, multiple series, re-plot, CSV/PNG export.
 - `tools/image-renamer.html` (category `media`) — rename images in a folder,
   manually one by one or in batch with a prefix + counter pattern; fully offline.
+- `tools/stiffened-plate-buckling.html` (category `buckling`) — stiffened
+  panel buckling capacity per DNV-CG-0128 (Dec 2023) Sec.3 closed form method:
+  overall panel (γ_GEB), plate EPP (Table 3 cases 1/2/15) and stiffener SI/PI
+  checks ([3.3.4], Table 5) with utilization η per limit state and limit
+  buckling stress γ_c·σ; flat bar, bulb (equivalent angle), angle and T
+  profiles; stresses in N/mm² (compression positive), lengths in mm (net).
 - `tools/fatigue-damage.html` (category `fatigue`) — fatigue damage D estimator
   with a Weibull long-term stress-range distribution (DNV-CG-0129, App. C):
   one-slope (C 2.2) or two-slope (C 2.3) S-N curve via a method selector; FAT class
