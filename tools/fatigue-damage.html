@@ -6,7 +6,7 @@
   <meta name="description" content="Fatigue damage D estimator: one-slope S-N curve with Weibull long-term stress-range distribution (DNV-CG-129 App. C 2.2). Stress in MPa (N/mm^2), offline.">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <title>Tool: Fatigue Damage Calculator</title>
-  <meta name="last-updated" content="2026-11-12T09:49:40Z">
+  <meta name="last-updated" content="2026-11-12T10:00:03Z">
   <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/css/template.css">
 </head>
@@ -36,10 +36,10 @@
             <div class="card-body">
               <label for="in-method" class="form-label">S-N curve approach (DNV-CG-129, App. C)</label>
               <select class="form-select" id="in-method">
-                <option value="one-slope" selected>One-slope S-N curve (App. C 2.2) &mdash; conservative for N_D &gt; 10&#7511;</option>
+                <option value="one-slope" selected>One-slope S-N curve (App. C 2.2) &mdash; conservative for N_D &gt; N<sub>t</sub></option>
                 <option value="two-slope">Two-slope S-N curve (App. C 2.3)</option>
               </select>
-              <div class="form-text">One-slope with m = 3 is correct for N_D &lt; 10&#7511;; for N_D &gt; 10&#7511; it is conservative &mdash; choose two-slope for a more accurate estimate.</div>
+              <div class="form-text">One-slope with m = 3 is correct for N_D &lt; N<sub>t</sub>; for N_D &gt; N<sub>t</sub> it is conservative &mdash; choose two-slope for a more accurate estimate. N<sub>t</sub> = cycles at knuckle (Sec. 3 Table 1).</div>
             </div>
           </div>
 
@@ -79,7 +79,7 @@
               <hr>
               <label for="num-m" class="form-label">S-N slope m (&ndash;) &mdash; fixed</label>
               <input type="number" class="form-control" id="num-m" min="1" max="10" step="any" value="3" disabled>
-              <div class="form-text">m is fixed at 3: correct for N_D &lt; 10&#7511;. For N_D &gt; 10&#7511; the one-slope estimate with m = 3 is conservative &mdash; select the two-slope method above (App. C 2.3) for a more accurate estimate. In two-slope mode the slopes m and m+&Delta;m come from the class row of Sec. 3 Table 1.</div>
+              <div class="form-text">m is fixed at 3: correct for N_D &lt; N<sub>t</sub>. For N_D &gt; N<sub>t</sub> the one-slope estimate with m = 3 is conservative &mdash; select the two-slope method above (App. C 2.3) for a more accurate estimate. N<sub>t</sub> = cycles at knuckle (Sec. 3 Table 1). In two-slope mode the slopes m and m+&Delta;m come from the class row of Sec. 3 Table 1.</div>
             </div>
           </div>
 
@@ -177,7 +177,7 @@
                 <li>Fatigue life (linear accumulation / Miner): <code>T_f = T_D / D</code>; equivalent constant-amplitude stress range solved from <code>N_D / N(S_eq) = D</code> on the active S-N curve</li>
                 <li>&Gamma; evaluated with a Lanczos approximation (complete gamma function).</li>
               </ul>
-              <p class="small text-body-secondary mb-0">Stresses are in MPa (N/mm&sup2;) because the DNV S-N curves define K&#8322; in (N/mm&sup2;)^m; f&#8320; is entered in % and used as a fraction. One-slope S-N curves give conservative fatigue-life estimates compared to two-slope curves (App. C 2.2/2.3): with m = 3 fixed, one-slope is correct for N_D &lt; 10&#7511;; for N_D &gt; 10&#7511; it is conservative and the two-slope estimate is more accurate. Sec. 3 Table 1 is for the in-air environment; per Sec. 3.1 seawater with cathodic protection gives approximately the same fatigue life as dry air.</p>
+              <p class="small text-body-secondary mb-0">Stresses are in MPa (N/mm&sup2;) because the DNV S-N curves define K&#8322; in (N/mm&sup2;)^m; f&#8320; is entered in % and used as a fraction. One-slope S-N curves give conservative fatigue-life estimates compared to two-slope curves (App. C 2.2/2.3): with m = 3 fixed, one-slope is correct for N_D &lt; N<sub>t</sub>; for N_D &gt; N<sub>t</sub> it is conservative and the two-slope estimate is more accurate (N<sub>t</sub> = cycles at knuckle, Sec. 3 Table 1). Sec. 3 Table 1 is for the in-air environment; per Sec. 3.1 seawater with cathodic protection gives approximately the same fatigue life as dry air.</p>
             </div>
             <div class="col-lg-5">
               <h2 class="h6">Sources</h2>
