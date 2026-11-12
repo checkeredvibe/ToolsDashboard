@@ -37,7 +37,7 @@
     sliderDs0: $('slider-ds0'), numDs0: $('num-ds0'),
     sliderL: $('slider-l'), numL: $('num-l'),
     sliderF0: $('slider-f0'), numF0: $('num-f0'),
-    numFat: $('num-fat'), fatPreset: $('in-fat-preset'), numM: $('num-m'), numM2: $('num-m2'),
+    numFat: $('num-fat'), fatPreset: $('in-fat-preset'), numM: $('num-m'), numM2: $('num-m2'), m2Row: $('m2-row'),
     numTd: $('num-td'), numN0: $('num-n0'), numEta: $('num-eta'),
     outD: $('out-d'), outStatus: $('out-status'), outLife: $('out-life'), outSeq: $('out-seq'),
     tableBody: $('out-table').querySelector('tbody')
@@ -259,6 +259,7 @@
   // Single update path: every input change re-renders all outputs live
   function update() {
     const p = readInputs();
+    els.m2Row.hidden = p.method !== 'two-slope';
     els.numM2.value = classM2();
     if (!valid(p)) { clearOutputs(); return; }
     const r = compute(p);

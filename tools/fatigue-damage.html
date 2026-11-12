@@ -6,7 +6,7 @@
   <meta name="description" content="Fatigue damage D estimator: one-slope S-N curve with Weibull long-term stress-range distribution (DNV-CG-129 App. C 2.2). Stress in MPa (N/mm^2), offline.">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <title>Tool: Fatigue Damage Calculator</title>
-  <meta name="last-updated" content="2026-11-12T12:51:22Z">
+  <meta name="last-updated" content="2026-11-12T13:05:00Z">
   <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/css/template.css">
 </head>
@@ -79,8 +79,10 @@
               <hr>
               <label for="num-m" class="form-label">S-N slope <em>m</em> (&ndash;)</label>
               <input type="number" class="form-control" id="num-m" min="1" max="10" step="any" value="3" disabled>
-              <label for="num-m2" class="form-label mt-2">S-N slope <em>m</em>+&Delta;m (&ndash;)</label>
-              <input type="number" class="form-control" id="num-m2" min="1" max="10" step="any" value="5" disabled>
+              <div id="m2-row" hidden>
+                <label for="num-m2" class="form-label mt-2">S-N slope <em>m</em>+&Delta;m (&ndash;)</label>
+                <input type="number" class="form-control" id="num-m2" min="1" max="10" step="any" value="5" disabled>
+              </div>
             </div>
           </div>
 
@@ -200,6 +202,6 @@
   <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/template.js"></script>
   <script src="../assets/js/tools.js"></script>
-  <script src="../assets/js/fatigue-damage.js?v=7g8h9i0j"></script>
+  <script src="../assets/js/fatigue-damage.js?v=1k2l3m4n"></script>
 </body>
 </html>
