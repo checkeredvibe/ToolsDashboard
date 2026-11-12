@@ -15,6 +15,7 @@
 
   const els = {
     profile: $('in-profile'),
+    bulbPreset: $('in-bulb-preset'), bulbNote: $('bulb-note'),
     sliderS: $('slider-s'), numS: $('num-s'),
     sliderL: $('slider-l'), numL: $('num-l'),
     sliderTp: $('slider-tp'), numTp: $('num-tp'),
@@ -506,9 +507,53 @@
   pair(els.sliderBf, els.numBf, updateCheap, updateFull);
   pair(els.sliderTf, els.numTf, updateCheap, updateFull);
 
+  // Equivalent angle idealization of a bulb flat (EN 10067): web h x t, plus a
+  // flange matching the catalogue section area, centroid and Ix
+  // (DNV-RU-SHIP Pt.3 Ch.3 Sec.7 [1.4.1] idealization referenced from [3.3.3]).
+  function bulbEquivalent(p) {
+    const A = p.a * 100, dx = p.dx * 10, h = p.h, t = p.t;
+    const Aw = h * t, Af = Math.max(A - Aw, 1);
+    const tf = 2 * (h - (A * dx - Aw * h / 2) / Af);
+    const bf = Af / tf;
+    return { hw: h, tw: t, bf: Number(bf.toPrecision(4)), tf: Number(tf.toPrecision(4)) };
+  }
+
+  function setScantlings(v) {
+    for (const key of ['Hw', 'Tw', 'Bf', 'Tf']) {
+      const num = els['num' + key], slider = els['slider' + key];
+      num.value = v[key.toLowerCase()];
+      slider.value = num.value;
+    }
+  }
+
+  function fillBulbPresets() {
+    if (typeof BULB_PROFILES === 'undefined') return;
+    const seen = new Set();
+    for (const p of BULB_PROFILES) {
+      if (seen.has(p.name)) continue;
+      seen.add(p.name);
+      const opt = document.createElement('option');
+      opt.value = p.name;
+      opt.textContent = 'Standard bulb flat ' + p.name + ' (EN 10067)';
+      if (p.name === 'HP 140x7') opt.selected = true;
+      els.bulbPreset.appendChild(opt);
+    }
+  }
+
+  els.bulbPreset.addEventListener('change', () => {
+    if (typeof BULB_PROFILES === 'undefined') return;
+    const p = BULB_PROFILES.find((q) => q.name === els.bulbPreset.value);
+    if (!p) return;
+    setScantlings(bulbEquivalent(p));
+    updateFull();
+  });
+
   function syncProfile() {
     const flat = els.profile.value === 'flat';
+    const bulb = els.profile.value === 'bulb';
     els.flangeRow.hidden = flat;
+    els.bulbPreset.hidden = !bulb;
+    els.bulbNote.hidden = !bulb;
     updateFull();
   }
   els.profile.addEventListener('change', syncProfile);
@@ -521,5 +566,6 @@
   }
   els.lb1Toggle.addEventListener('change', updateFull);
 
+  fillBulbPresets();
   syncProfile();
 })();

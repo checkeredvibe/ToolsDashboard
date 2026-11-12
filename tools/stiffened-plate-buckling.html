@@ -6,7 +6,7 @@
   <meta name="description" content="Stiffened panel buckling capacity per DNV-CG-0128 (Dec 2023) closed form method: overall panel, plate EPP and stiffener SI/PI checks with utilization and limit buckling stress. Stresses in N/mm^2, offline.">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <title>Tool: Stiffened Plate Buckling</title>
-  <meta name="last-updated" content="2026-11-12T21:30:00Z">
+  <meta name="last-updated" content="2026-11-12T22:20:00Z">
   <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/css/template.css">
 </head>
@@ -87,15 +87,15 @@
                 <div class="mb-3">
                   <label class="form-label mb-1" for="num-bf">Flange breadth b<sub>f</sub> (mm)</label>
                   <div class="d-flex gap-2 align-items-center">
-                    <input type="range" class="form-range flex-grow-1" id="slider-bf" min="20" max="400" step="5" value="60">
-                    <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-bf" min="5" max="500" step="any" value="60">
+                    <input type="range" class="form-range flex-grow-1" id="slider-bf" min="5" max="400" step="0.1" value="17.3">
+                    <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-bf" min="2" max="500" step="any" value="17.3">
                   </div>
                 </div>
                 <div class="mb-0">
                   <label class="form-label mb-1" for="num-tf">Net flange thickness t<sub>f</sub> (mm)</label>
                   <div class="d-flex gap-2 align-items-center">
-                    <input type="range" class="form-range flex-grow-1" id="slider-tf" min="3" max="40" step="0.5" value="12">
-                    <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-tf" min="1" max="50" step="any" value="12">
+                    <input type="range" class="form-range flex-grow-1" id="slider-tf" min="3" max="40" step="0.1" value="15.2">
+                    <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-tf" min="1" max="50" step="any" value="15.2">
                   </div>
                 </div>
               </div>
@@ -107,11 +107,11 @@
             <div class="card-body">
               <div class="mb-3">
                 <label class="form-label mb-1" for="num-rehp">Plate yield stress R<sub>eH,P</sub> (N/mm&sup2;)</label>
-                <input type="number" class="form-control" id="num-rehp" min="50" max="500" step="any" value="235">
+                <input type="number" class="form-control" id="num-rehp" min="50" max="500" step="any" value="355">
               </div>
               <div class="mb-0">
                 <label class="form-label mb-1" for="num-rehs">Stiffener yield stress R<sub>eH,S</sub> (N/mm&sup2;)</label>
-                <input type="number" class="form-control" id="num-rehs" min="50" max="500" step="any" value="235">
+                <input type="number" class="form-control" id="num-rehs" min="50" max="500" step="any" value="355">
               </div>
               <div class="form-text">Steel: E = 206000 N/mm&sup2;, &nu; = 0.3 (fixed).</div>
             </div>
@@ -122,15 +122,15 @@
             <div class="card-body">
               <div class="mb-2">
                 <label class="form-label mb-1" for="num-sx">&sigma;<sub>x</sub> along stiffener axis (N/mm&sup2;, compression +)</label>
-                <input type="number" class="form-control" id="num-sx" step="any" value="100">
+                <input type="number" class="form-control" id="num-sx" step="any" value="150">
               </div>
               <div class="mb-2">
                 <label class="form-label mb-1" for="num-sy">&sigma;<sub>y</sub> transverse (N/mm&sup2;, compression +)</label>
-                <input type="number" class="form-control" id="num-sy" step="any" value="50">
+                <input type="number" class="form-control" id="num-sy" step="any" value="0">
               </div>
               <div class="mb-2">
                 <label class="form-label mb-1" for="num-tau">Shear stress &tau; (N/mm&sup2;)</label>
-                <input type="number" class="form-control" id="num-tau" step="any" value="30">
+                <input type="number" class="form-control" id="num-tau" step="any" value="0">
               </div>
               <div class="mb-2">
                 <label class="form-label mb-1" for="num-p">Lateral pressure P (kN/m&sup2;, constant per [2.1.5])</label>
@@ -147,8 +147,8 @@
               <div class="mb-0">
                 <label class="form-label mb-1" for="in-pside">Lateral pressure applied on</label>
                 <select class="form-select" id="in-pside">
-                  <option value="opposite" selected>Side opposite to the stiffener</option>
-                  <option value="same">Same side as the stiffener</option>
+                  <option value="opposite" selected>Plate side &mdash; opposite to the stiffener, pushing towards it</option>
+                  <option value="same">Stiffener side &mdash; same side as the stiffener</option>
                 </select>
               </div>
               <div class="form-text">Stresses to be taken as defined in [3.2.7] (FE reference stresses, prescriptive LCP stresses or grillage-corrected).</div>
@@ -192,7 +192,7 @@
               </div>
               <div class="mb-2">
                 <label class="form-label mb-1" for="num-ltor">&ell;<sub>tor</sub> &mdash; tripping bracket spacing (mm, = &ell; if none)</label>
-                <input type="number" class="form-control" id="num-ltor" min="10" step="any" value="2400">
+                <input type="number" class="form-control" id="num-ltor" min="10" step="any" value="1800">
               </div>
               <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" id="in-lb1">
@@ -332,6 +332,7 @@
   <script src="../assets/vendor/plotly/plotly-cartesian.min.js"></script>
   <script src="../assets/js/template.js"></script>
   <script src="../assets/js/tools.js"></script>
+  <script src="../assets/data/bulb-profiles.js"></script>
   <script src="../assets/js/stiffened-plate-buckling.js?v=1a2b3c4d"></script>
 </body>
 </html>
