@@ -6,7 +6,7 @@
   <meta name="description" content="Fatigue damage D estimator: one-slope S-N curve with Weibull long-term stress-range distribution (DNV-CG-129 App. C 2.2). Stress in MPa (N/mm^2), offline.">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <title>Tool: Fatigue Damage Calculator</title>
-  <meta name="last-updated" content="2026-11-12T10:12:00Z">
+  <meta name="last-updated" content="2026-11-12T12:51:22Z">
   <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/css/template.css">
 </head>
@@ -77,9 +77,10 @@
               <input type="number" class="form-control" id="num-fat" min="1" max="500" step="any" value="62">
               <div class="form-text">X stays editable after picking a preset.</div>
               <hr>
-              <label for="num-m" class="form-label">S-N slope m (&ndash;) &mdash; fixed</label>
+              <label for="num-m" class="form-label">S-N slope <em>m</em> (&ndash;)</label>
               <input type="number" class="form-control" id="num-m" min="1" max="10" step="any" value="3" disabled>
-              <div class="form-text">m is fixed at 3: correct for N_D &lt; N<sub>t</sub>. For N_D &gt; N<sub>t</sub> the one-slope estimate with m = 3 is conservative &mdash; select the two-slope method above (App. C 2.3) for a more accurate estimate. N<sub>t</sub> = cycles at knuckle (Sec. 3 Table 1). In two-slope mode the slopes come from the class row of Sec. 3 Table 1 (FAT X row: m = 3 and m+&Delta;m = 5; preset classes B1&ndash;F use their own row values).</div>
+              <label for="num-m2" class="form-label mt-2">S-N slope <em>m</em>+&Delta;m (&ndash;)</label>
+              <input type="number" class="form-control" id="num-m2" min="1" max="10" step="any" value="5" disabled>
             </div>
           </div>
 
@@ -199,6 +200,6 @@
   <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/template.js"></script>
   <script src="../assets/js/tools.js"></script>
-  <script src="../assets/js/fatigue-damage.js?v=3c4d5e6f"></script>
+  <script src="../assets/js/fatigue-damage.js?v=7g8h9i0j"></script>
 </body>
 </html>

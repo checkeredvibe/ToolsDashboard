@@ -37,7 +37,7 @@
     sliderDs0: $('slider-ds0'), numDs0: $('num-ds0'),
     sliderL: $('slider-l'), numL: $('num-l'),
     sliderF0: $('slider-f0'), numF0: $('num-f0'),
-    numFat: $('num-fat'), fatPreset: $('in-fat-preset'), numM: $('num-m'),
+    numFat: $('num-fat'), fatPreset: $('in-fat-preset'), numM: $('num-m'), numM2: $('num-m2'),
     numTd: $('num-td'), numN0: $('num-n0'), numEta: $('num-eta'),
     outD: $('out-d'), outStatus: $('out-status'), outLife: $('out-life'), outSeq: $('out-seq'),
     tableBody: $('out-table').querySelector('tbody')
@@ -250,9 +250,16 @@
     els.tableBody.innerHTML = '';
   }
 
+  // m+Δm shown in the disabled display field: class row value, 5 for FAT X
+  function classM2() {
+    const key = els.fatPreset.value;
+    return key !== 'custom' && SN_CLASSES[key] ? SN_CLASSES[key].m2 : 5;
+  }
+
   // Single update path: every input change re-renders all outputs live
   function update() {
     const p = readInputs();
+    els.numM2.value = classM2();
     if (!valid(p)) { clearOutputs(); return; }
     const r = compute(p);
     renderNumbers(p, r);
