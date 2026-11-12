@@ -72,6 +72,12 @@ All results use SI units. No external network resources are used — open
   click-to-read values, multiple series, re-plot, CSV/PNG export.
 - `tools/image-renamer.html` (category `media`) — rename images in a folder,
   manually one by one or in batch with a prefix + counter pattern; fully offline.
+- `tools/fatigue-damage.html` (category `fatigue`) — fatigue damage D estimator
+  with a Weibull long-term stress-range distribution (DNV-CG-0129, App. C):
+  one-slope (C 2.2) or two-slope (C 2.3) S-N curve via a method selector; FAT class
+  presets B1–F / custom FAT X (Sec. 3 Table 1); m fixed at 3 with a displayed
+  m+Δm; outputs damage D vs allowable η, fatigue life and equivalent stress
+  range S_eq with a full results table. Stresses in MPa (N/mm²).
 - `tools/template.html` (category `template`) — starter page with one example of
   every supported field type (see Architecture).
 
