@@ -6,7 +6,7 @@
   <meta name="description" content="Fatigue damage D estimator: one-slope S-N curve with Weibull long-term stress-range distribution (DNV-CG-129 App. C 2.2). Stress in MPa (N/mm^2), offline.">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <title>Tool: Fatigue Damage Calculator</title>
-  <meta name="last-updated" content="2026-11-12T13:05:00Z">
+  <meta name="last-updated" content="2026-11-12T14:46:08Z">
   <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/css/template.css">
 </head>
@@ -36,15 +36,14 @@
             <div class="card-body">
               <label for="in-method" class="form-label">S-N curve approach (DNV-CG-129, App. C)</label>
               <select class="form-select" id="in-method">
-                <option value="one-slope" selected>One-slope S-N curve (App. C 2.2) &mdash; conservative for N_D &gt; N<sub>t</sub></option>
-                <option value="two-slope">Two-slope S-N curve (App. C 2.3) &mdash; FAT X row: m = 3, m+&Delta;m = 5</option>
+                <option value="one-slope" selected>One-slope S-N curve</option>
+                <option value="two-slope">Two-slope S-N curve</option>
               </select>
-              <div class="form-text">One-slope with m = 3 is correct for N_D &lt; N<sub>t</sub>; for N_D &gt; N<sub>t</sub> it is conservative &mdash; choose two-slope for a more accurate estimate. N<sub>t</sub> = cycles at knuckle (Sec. 3 Table 1).</div>
             </div>
           </div>
 
           <div class="card">
-            <div class="card-header">Stress range at the detail</div>
+            <div class="card-header">Stress range</div>
             <div class="card-body">
               <div class="mb-3">
                 <label class="form-label mb-1" for="num-ds0">Largest stress range &Delta;&sigma;<sub>0</sub> (MPa) &mdash; exceeded once in n&#8320; cycles</label>
@@ -53,12 +52,11 @@
                   <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-ds0" min="1" max="500" step="any" value="160">
                 </div>
               </div>
-              <div class="form-text">e.g. the hot-spot stress range at the detail of interest.</div>
             </div>
           </div>
 
           <div class="card">
-            <div class="card-header">One-slope S-N curve (DNV-CG-129 Sec. 2.3, Table 1)</div>
+            <div class="card-header">S-N curve parameters</div>
             <div class="card-body">
               <label for="in-fat-preset" class="form-label">Standard FAT class (fills X below)</label>
               <select class="form-select mb-2" id="in-fat-preset">
@@ -109,12 +107,11 @@
               </div>
               <div class="mb-3">
                 <label for="num-n0" class="form-label">n&#8320; &mdash; cycles in which &Delta;&sigma;<sub>0</sub> occurs once (&ndash;)</label>
-                <input type="number" class="form-control" id="num-n0" min="2" step="any" value="10000000">
+                <input type="number" class="form-control" id="num-n0" min="2" step="any" value="1e7">
               </div>
               <div>
                 <label for="num-eta" class="form-label">Allowable damage &eta; (&ndash;)</label>
                 <input type="number" class="form-control" id="num-eta" min="0.001" max="10" step="any" value="1">
-                <div class="form-text">Acceptance check: D &le; &eta;.</div>
               </div>
             </div>
           </div>
