@@ -6,7 +6,7 @@
   <meta name="description" content="Stiffened panel buckling capacity per DNV-CG-0128 (Dec 2023) closed form method: overall panel, plate EPP and stiffener SI/PI checks with utilization and limit buckling stress. Stresses in N/mm^2, offline.">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <title>Tool: Stiffened Plate Buckling</title>
-  <meta name="last-updated" content="2026-11-12T22:20:00Z">
+  <meta name="last-updated" content="2026-11-13T14:05:00Z">
   <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/css/template.css">
 </head>
@@ -37,22 +37,22 @@
               <div class="mb-3">
                 <label class="form-label mb-1" for="num-s">Stiffener spacing s (mm)</label>
                 <div class="d-flex gap-2 align-items-center">
-                  <input type="range" class="form-range flex-grow-1" id="slider-s" min="100" max="2000" step="10" value="800">
-                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-s" min="10" max="5000" step="any" value="800">
+                  <input type="range" class="form-range flex-grow-1" id="slider-s" min="100" max="2000" step="10" value="500">
+                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-s" min="10" max="5000" step="any" value="500">
                 </div>
               </div>
               <div class="mb-3">
                 <label class="form-label mb-1" for="num-l">Stiffener span &ell; between PSMs (mm)</label>
                 <div class="d-flex gap-2 align-items-center">
-                  <input type="range" class="form-range flex-grow-1" id="slider-l" min="200" max="6000" step="10" value="2400">
-                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-l" min="50" max="10000" step="any" value="2400">
+                  <input type="range" class="form-range flex-grow-1" id="slider-l" min="200" max="6000" step="10" value="1800">
+                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-l" min="50" max="10000" step="any" value="1800">
                 </div>
               </div>
               <div class="mb-0">
                 <label class="form-label mb-1" for="num-tp">Net plate thickness t<sub>p</sub> (mm)</label>
                 <div class="d-flex gap-2 align-items-center">
-                  <input type="range" class="form-range flex-grow-1" id="slider-tp" min="4" max="40" step="0.5" value="15">
-                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-tp" min="1" max="100" step="any" value="15">
+                  <input type="range" class="form-range flex-grow-1" id="slider-tp" min="4" max="40" step="0.5" value="9">
+                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-tp" min="1" max="100" step="any" value="9">
                 </div>
               </div>
             </div>
@@ -63,41 +63,67 @@
             <div class="card-body">
               <label for="in-profile" class="form-label">Profile type</label>
               <select class="form-select mb-3" id="in-profile">
-                <option value="T" selected>T profile</option>
+                <option value="T">T profile</option>
                 <option value="angle">Angle profile</option>
-                <option value="bulb">Bulb profile (idealized as equivalent angle, DNV-RU-SHIP Pt.3 Ch.3 Sec.7 [1.4.1])</option>
+                <option value="bulb" selected>Bulb profile (equivalent angle per DNV-RU-SHIP Pt.3 Ch.3 Sec.7 [1.4.1])</option>
                 <option value="flat">Flat bar</option>
               </select>
-              <div class="mb-3">
-                <label class="form-label mb-1" for="num-hw">Web height h<sub>w</sub> (mm)</label>
-                <div class="d-flex gap-2 align-items-center">
-                  <input type="range" class="form-range flex-grow-1" id="slider-hw" min="50" max="500" step="5" value="200">
-                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-hw" min="10" max="1000" step="any" value="200">
-                </div>
+
+              <div id="bulb-block">
+                <label for="in-bulb-preset" class="form-label">Standard bulb flat (EN 10067)</label>
+                <select class="form-select mb-2" id="in-bulb-preset"></select>
+                <div class="form-text mb-2">Idealized as an equivalent angle per DNV-RU-SHIP Pt.3 Ch.3 Sec.7 [1.4.1]: h<sub>w</sub> = h'<sub>w</sub> &minus; h'<sub>w</sub>/9.2 + 2, t<sub>f</sub> = h'<sub>w</sub>/9.2 &minus; 2, t<sub>w</sub> = t'<sub>w</sub>, b<sub>f</sub> = &alpha;(t'<sub>w</sub> + h'<sub>w</sub>/6.7 &minus; 2), with &alpha; = 1.1 + (120 &minus; h'<sub>w</sub>)&sup2;/3000 for h'<sub>w</sub> &le; 120, else &alpha; = 1.0.</div>
+                <h3 class="h6 mb-1">Bulb flat properties (EN 10067)</h3>
+                <table class="table table-sm table-striped mb-2">
+                  <tbody id="bulb-props-body"></tbody>
+                </table>
+                <h3 class="h6 mb-1">Equivalent angle used in the calculation</h3>
+                <table class="table table-sm table-striped mb-0">
+                  <tbody id="equiv-props-body"></tbody>
+                </table>
               </div>
-              <div class="mb-0">
-                <label class="form-label mb-1" for="num-tw">Net web thickness t<sub>w</sub> (mm)</label>
-                <div class="d-flex gap-2 align-items-center">
-                  <input type="range" class="form-range flex-grow-1" id="slider-tw" min="3" max="30" step="0.5" value="10">
-                  <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-tw" min="1" max="50" step="any" value="10">
-                </div>
-              </div>
-              <div id="flange-row">
-                <hr>
+
+              <div id="scantling-block">
                 <div class="mb-3">
-                  <label class="form-label mb-1" for="num-bf">Flange breadth b<sub>f</sub> (mm)</label>
+                  <label class="form-label mb-1" for="num-hw">Web height h<sub>w</sub> (mm)</label>
                   <div class="d-flex gap-2 align-items-center">
-                    <input type="range" class="form-range flex-grow-1" id="slider-bf" min="5" max="400" step="0.1" value="17.3">
-                    <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-bf" min="2" max="500" step="any" value="17.3">
+                    <input type="range" class="form-range flex-grow-1" id="slider-hw" min="50" max="500" step="5" value="140">
+                    <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-hw" min="10" max="1000" step="any" value="140">
                   </div>
                 </div>
                 <div class="mb-0">
-                  <label class="form-label mb-1" for="num-tf">Net flange thickness t<sub>f</sub> (mm)</label>
+                  <label class="form-label mb-1" for="num-tw">Net web thickness t<sub>w</sub> (mm)</label>
                   <div class="d-flex gap-2 align-items-center">
-                    <input type="range" class="form-range flex-grow-1" id="slider-tf" min="3" max="40" step="0.1" value="15.2">
-                    <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-tf" min="1" max="50" step="any" value="15.2">
+                    <input type="range" class="form-range flex-grow-1" id="slider-tw" min="3" max="30" step="0.5" value="7">
+                    <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-tw" min="1" max="50" step="any" value="7">
                   </div>
                 </div>
+                <div id="flange-row">
+                  <hr>
+                  <div class="mb-3">
+                    <label class="form-label mb-1" for="num-bf">Flange breadth b<sub>f</sub> (mm)</label>
+                    <div class="d-flex gap-2 align-items-center">
+                      <input type="range" class="form-range flex-grow-1" id="slider-bf" min="5" max="400" step="0.1" value="25.9">
+                      <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-bf" min="2" max="500" step="any" value="25.9">
+                    </div>
+                  </div>
+                  <div class="mb-0">
+                    <label class="form-label mb-1" for="num-tf">Net flange thickness t<sub>f</sub> (mm)</label>
+                    <div class="d-flex gap-2 align-items-center">
+                      <input type="range" class="form-range flex-grow-1" id="slider-tf" min="3" max="40" step="0.1" value="13.2">
+                      <input type="number" class="form-control form-control-sm" style="width: 7.5rem;" id="num-tf" min="1" max="50" step="any" value="13.2">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="section-props-block">
+                <hr>
+                <h3 class="h6 mb-1">Section properties (stiffener, net)</h3>
+                <table class="table table-sm table-striped mb-0">
+                  <tbody id="section-props-body"></tbody>
+                </table>
+                <div class="form-text mt-1" id="flat-note" hidden>Flat bar checks use the reduced web thickness t<sub>w,red</sub> per [3.3.2], shown in the intermediate results.</div>
               </div>
             </div>
           </div>
@@ -304,7 +330,7 @@
                 <li>Stiffener capacity ([3.3.4]): <code>(&gamma;<sub>c</sub>&sigma;<sub>a</sub> + &sigma;<sub>b</sub> + &sigma;<sub>w</sub>)S/R<sub>eH</sub> = 1</code> solved iteratively for &gamma;<sub>c</sub> (SI: R<sub>eH,S</sub>, Z at flange top; PI: R<sub>eH,P</sub>, Z at attached plating); <code>&sigma;<sub>a</sub> = &sigma;<sub>x</sub>(st<sub>p</sub>+A<sub>s</sub>)/(b<sub>eff1</sub>t<sub>p</sub>+A<sub>s</sub>)</code>; <code>&sigma;<sub>b</sub> = (M&#8320;+M&#8321;+M&#8322;)/(1000Z)</code> with <code>M&#8320; = F<sub>E</sub>C<sub>sl</sub>(&gamma;/(&gamma;<sub>GEB</sub>&minus;&gamma;))w&#8320;</code>, <code>w&#8320; = &ell;/1000</code>, <code>C<sub>sl</sub></code> from the global slenderness <code>&lambda;<sub>G</sub></code>, <code>M&#8321; = C<sub>i</sub>|P|s&ell;&sup2;/(24&middot;10&sup3;)</code> (continuous; /8&middot;10&sup3; sniped), <code>M&#8322; = C<sub>snip</sub>w<sub>na</sub>&gamma;&sigma;<sub>x</sub>(A<sub>p</sub>+A<sub>s</sub>)</code> for sniped ends; torsional stress <code>&sigma;<sub>w</sub></code> (SI only, <code>&sigma;<sub>a</sub> &gt; 0</code>) with <code>&sigma;<sub>ET</sub></code> minimized over the half-wave number m<sub>tor</sub> using I<sub>P</sub>, I<sub>T</sub>, I<sub>&omega;</sub> from Table 5 and the degree of fixation <code>&epsilon;</code>.</li>
                 <li>Effective width of attached plating ([3.3.5]): <code>b<sub>eff1</sub> = C<sub>x</sub>b</sub> (=&sigma;<sub>x</sub>&gt;0) or b</code>; <code>b<sub>eff</sub> = min(b<sub>eff1</sub>; &chi;<sub>s</sub>s)</code> with <code>&chi;<sub>s</sub></code> from <code>&ell;<sub>eff</sub>/s</code> (&ell;/&radic;3 fixed, 0.75&ell; one end fixed, &ell; simply supported).</li>
                 <li>Flat bar reduced web thickness ([3.3.2]): <code>t<sub>w,red</sub> = t<sub>w</sub>[1 &minus; (2&pi;&sup2;/3)(h<sub>w</sub>/s)&sup2;(1 &minus; b<sub>eff1</sub>/s)]</code> used for A<sub>s</sub>, Z and I.</li>
-                <li>Section idealization: bulb as equivalent angle (DNV-RU-SHIP Pt.3 Ch.3 Sec.7 [1.4.1]); <code>e<sub>f</sub></code> = h<sub>w</sub> (flat), h<sub>w</sub>&minus;0.5t<sub>f</sub> (bulb), h<sub>w</sub>+0.5t<sub>f</sub> (angle/T).</li>
+                <li>Section idealization: bulb flats as equivalent angle per DNV-RU-SHIP Pt.3 Ch.3 Sec.7 [1.4.1]: <code>h<sub>w</sub> = h'<sub>w</sub> &minus; h'<sub>w</sub>/9.2 + 2</code>, <code>t<sub>f</sub> = h'<sub>w</sub>/9.2 &minus; 2</code>, <code>t<sub>w</sub> = t'<sub>w</sub></code>, <code>b<sub>f</sub> = &alpha;(t'<sub>w</sub> + h'<sub>w</sub>/6.7 &minus; 2)</code> with <code>&alpha; = 1.1 + (120 &minus; h'<sub>w</sub>)&sup2;/3000</code> for h'<sub>w</sub> &le; 120, else &alpha; = 1.0; <code>e<sub>f</sub></code> = h<sub>w</sub> (flat), h<sub>w</sub>&minus;0.5t<sub>f</sub> (bulb), h<sub>w</sub>+0.5t<sub>f</sub> (angle/T).</li>
                 <li>Ultimate capacity and utilization per [2.1.3]/[2.1.4]: the applied combination is scaled proportionally until the governing interaction formula equals 1.0; <code>&eta; = 1/&gamma;<sub>c</sub></code>, limit buckling stress = <code>&gamma;<sub>c</sub>&middot;&sigma;</code>.</li>
                 <li>&gamma;<sub>c1</sub> of the plate interaction and &gamma;<sub>c</sub> of the stiffener checks are solved with bisection root-finding; &gamma;<sub>GEB,bi</sub> and &sigma;<sub>ET</sub> are minimized over integer half-wave numbers.</li>
               </ul>

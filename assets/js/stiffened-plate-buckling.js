@@ -15,7 +15,11 @@
 
   const els = {
     profile: $('in-profile'),
-    bulbPreset: $('in-bulb-preset'), bulbNote: $('bulb-note'),
+    bulbPreset: $('in-bulb-preset'),
+    bulbBlock: $('bulb-block'), scantlingBlock: $('scantling-block'),
+    sectionPropsBlock: $('section-props-block'), flatNote: $('flat-note'),
+    bulbPropsBody: $('bulb-props-body'), equivPropsBody: $('equiv-props-body'),
+    sectionPropsBody: $('section-props-body'),
     sliderS: $('slider-s'), numS: $('num-s'),
     sliderL: $('slider-l'), numL: $('num-l'),
     sliderTp: $('slider-tp'), numTp: $('num-tp'),
@@ -493,6 +497,7 @@
     if (inp.profile !== 'flat' && (!Number.isFinite(inp.bf) || !Number.isFinite(inp.tf))) return;
     let res;
     try { res = calculate(inp); } catch (e) { return; }
+    if (inp.profile !== 'bulb') renderSectionProps(inp);
     render(res, inp, withPlot);
   }
 
@@ -507,15 +512,33 @@
   pair(els.sliderBf, els.numBf, updateCheap, updateFull);
   pair(els.sliderTf, els.numTf, updateCheap, updateFull);
 
-  // Equivalent angle idealization of a bulb flat (EN 10067): web h x t, plus a
-  // flange matching the catalogue section area, centroid and Ix
-  // (DNV-RU-SHIP Pt.3 Ch.3 Sec.7 [1.4.1] idealization referenced from [3.3.3]).
+  // Equivalent angle idealization of a bulb flat per DNV-RU-SHIP Pt.3 Ch.3
+  // Sec.7 [1.4.1] (referenced from CG-128 [3.3.3]).
   function bulbEquivalent(p) {
-    const A = p.a * 100, dx = p.dx * 10, h = p.h, t = p.t;
-    const Aw = h * t, Af = Math.max(A - Aw, 1);
-    const tf = 2 * (h - (A * dx - Aw * h / 2) / Af);
-    const bf = Af / tf;
-    return { hw: h, tw: t, bf: Number(bf.toPrecision(4)), tf: Number(tf.toPrecision(4)) };
+    const h = p.h, t = p.t;
+    const alpha = h <= 120 ? 1.1 + Math.pow(120 - h, 2) / 3000 : 1.0;
+    const hw = h - h / 9.2 + 2;
+    const tf = h / 9.2 - 2;
+    const bf = alpha * (t + h / 6.7 - 2);
+    return { hw: Number(hw.toPrecision(4)), tw: t, bf: Number(bf.toPrecision(4)), tf: Number(tf.toPrecision(4)) };
+  }
+
+  // Geometric properties of the stiffener alone (no attached plating)
+  function stiffenerOnlyProps(profile, hw, tw, bf, tf) {
+    const parts = [{ A: hw * tw, z: hw / 2, Iown: tw * Math.pow(hw, 3) / 12 }];
+    if (profile !== 'flat') {
+      const zf = profile === 'T' ? hw + tf / 2 : hw - tf / 2;
+      parts.push({ A: bf * tf, z: zf, Iown: tf * Math.pow(bf, 3) / 12 });
+    }
+    const A = parts.reduce((t2, p) => t2 + p.A, 0);
+    const z = parts.reduce((t2, p) => t2 + p.A * p.z, 0) / A;
+    const Imm = parts.reduce((t2, p) => t2 + p.Iown + p.A * Math.pow(p.z - z, 2), 0);
+    const zTop = profile === 'T' ? hw + tf : hw;
+    const ef = profile === 'flat' ? hw : (profile === 'bulb' ? hw - 0.5 * tf : hw + 0.5 * tf);
+    let yw = tw / 2;
+    if (profile === 'T') yw = bf / 2;
+    else if (profile === 'angle' || profile === 'bulb') yw = bf - (hw * tw * tw + tf * bf * bf) / (2 * A);
+    return { A, z, Icm4: Imm / 1e4, Ztop: Imm / (zTop - z) / 1e3, ef, yw };
   }
 
   function setScantlings(v) {
@@ -534,26 +557,72 @@
       seen.add(p.name);
       const opt = document.createElement('option');
       opt.value = p.name;
-      opt.textContent = 'Standard bulb flat ' + p.name + ' (EN 10067)';
+      opt.textContent = p.name;
       if (p.name === 'HP 140x7') opt.selected = true;
       els.bulbPreset.appendChild(opt);
     }
   }
 
-  els.bulbPreset.addEventListener('change', () => {
+  function propRow(body, name, value, unit) {
+    const tr = document.createElement('tr');
+    const td1 = document.createElement('td'); td1.textContent = name;
+    const td2 = document.createElement('td'); td2.textContent = value;
+    const td3 = document.createElement('td'); td3.textContent = unit || '';
+    tr.append(td1, td2, td3); body.appendChild(tr);
+  }
+
+  function renderBulbProps(p) {
+    const eq = bulbEquivalent(p);
+    els.bulbPropsBody.innerHTML = '';
+    propRow(els.bulbPropsBody, 'Height h\u2032\u2098', Number(p.h), 'mm');
+    propRow(els.bulbPropsBody, 'Web thickness t\u2032\u2098', Number(p.t), 'mm');
+    propRow(els.bulbPropsBody, 'Section area', Number(p.a), 'cm\u00B2');
+    propRow(els.bulbPropsBody, 'Centroid from web back', Number(p.dx), 'cm');
+    propRow(els.bulbPropsBody, 'Moment of inertia I\u2093', Number(p.ix), 'cm\u2074');
+    propRow(els.bulbPropsBody, 'Section modulus W\u2093', Number(p.wx), 'cm\u00B3');
+    els.equivPropsBody.innerHTML = '';
+    propRow(els.equivPropsBody, 'Web height h\u2098', eq.hw, 'mm');
+    propRow(els.equivPropsBody, 'Web thickness t\u2098', eq.tw, 'mm');
+    propRow(els.equivPropsBody, 'Flange breadth b\u1DA0', eq.bf, 'mm');
+    propRow(els.equivPropsBody, 'Flange thickness t\u1DA0', eq.tf, 'mm');
+    const sp = stiffenerOnlyProps('angle', eq.hw, eq.tw, eq.bf, eq.tf);
+    propRow(els.equivPropsBody, 'Section area A\u209B', Number(sp.A.toPrecision(4)), 'mm\u00B2');
+    propRow(els.equivPropsBody, 'Centroid from plate', Number(sp.z.toPrecision(4)), 'mm');
+    propRow(els.equivPropsBody, 'Moment of inertia I', Number(sp.Icm4.toPrecision(4)), 'cm\u2074');
+    propRow(els.equivPropsBody, 'Section modulus Z (flange top)', Number(sp.Ztop.toPrecision(4)), 'cm\u00B3');
+    propRow(els.equivPropsBody, 'e\u1DA0 (CG-128 symbols)', Number(sp.ef.toPrecision(4)), 'mm');
+    return eq;
+  }
+
+  function applyBulbPreset() {
     if (typeof BULB_PROFILES === 'undefined') return;
     const p = BULB_PROFILES.find((q) => q.name === els.bulbPreset.value);
     if (!p) return;
-    setScantlings(bulbEquivalent(p));
-    updateFull();
-  });
+    setScantlings(renderBulbProps(p));
+  }
+
+  els.bulbPreset.addEventListener('change', () => { applyBulbPreset(); updateFull(); });
+
+  function renderSectionProps(inp) {
+    const sp = stiffenerOnlyProps(inp.profile, inp.hw, inp.tw, inp.bf, inp.tf);
+    els.sectionPropsBody.innerHTML = '';
+    propRow(els.sectionPropsBody, 'Section area A\u209B', Number(sp.A.toPrecision(4)), 'mm\u00B2');
+    propRow(els.sectionPropsBody, 'Centroid from plate', Number(sp.z.toPrecision(4)), 'mm');
+    propRow(els.sectionPropsBody, 'Moment of inertia I', Number(sp.Icm4.toPrecision(4)), 'cm\u2074');
+    propRow(els.sectionPropsBody, 'Section modulus Z (flange top)', Number(sp.Ztop.toPrecision(4)), 'cm\u00B3');
+    propRow(els.sectionPropsBody, 'e\u1DA0', Number(sp.ef.toPrecision(4)), 'mm');
+    propRow(els.sectionPropsBody, 'y\u2098', Number(sp.yw.toPrecision(4)), 'mm');
+  }
 
   function syncProfile() {
     const flat = els.profile.value === 'flat';
     const bulb = els.profile.value === 'bulb';
+    els.bulbBlock.hidden = !bulb;
+    els.scantlingBlock.hidden = bulb;
+    els.sectionPropsBlock.hidden = bulb;
     els.flangeRow.hidden = flat;
-    els.bulbPreset.hidden = !bulb;
-    els.bulbNote.hidden = !bulb;
+    els.flatNote.hidden = !flat;
+    if (bulb) applyBulbPreset();
     updateFull();
   }
   els.profile.addEventListener('change', syncProfile);
