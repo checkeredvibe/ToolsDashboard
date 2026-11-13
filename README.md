@@ -102,7 +102,8 @@ All results use SI units. No external network resources are used — open
   (ISO date) drives the "Recently added" sort.
 - Footer: "TG2026 - Make sure you validate your calculations before using them
   for professional purposes." plus a bottom-left "Last updated on: <date>
-  <HH:MM:SS>" timestamp, filled by `template.js` from the page's
+  <HH:MM:SS> CET" timestamp (converted to the Europe/Amsterdam timezone and
+  labelled CET), filled by `template.js` from the page's
   `<meta name="last-updated" content="ISO-timestamp">` tag (per-page last
   edit time — on GitHub Pages `document.lastModified` is the deploy time,
   identical on all pages). Falls back to `document.lastModified` when the meta
