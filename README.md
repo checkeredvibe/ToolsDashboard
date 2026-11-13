@@ -40,8 +40,8 @@ All results use SI units. No external network resources are used — open
   - bottom row: equations used + sources
 - `assets/css/template.css` — shared styles on top of Bootstrap (brand theme,
   tile grid, navbar).
-- `assets/js/template.js` — shared logic: theme toggle and collapsible
-  Input/Output column headers (the only owner of these behaviors).
+- `assets/js/template.js` — shared logic: theme toggle and collapsible tiles
+  in the Input/Output columns (the only owner of these behaviors).
 - `assets/js/dashboard.js` — index-page logic: live search filter with
   highlighting, category chips, sorting, result counter, URL-hash state.
 - `assets/js/tools.js` — shared SI-unit helpers (`SI.format`, `SI.parse`).
@@ -86,12 +86,13 @@ All results use SI units. No external network resources are used — open
 - Brand theme: white + `#272974`.
 - Light/dark mode via Bootstrap's `data-bs-theme` attribute on `<html>`,
   persisted in `localStorage` (key `dashboard-theme`).
-- Tool pages: the `Input` / `Output` column headers (`.tool-col-header` inside
-  `.tool-layout`) are collapsible — `template.js` turns each header into a
-  toggle button with a chevron. Collapsing hides the column body; on desktop
-  the other column takes the freed width and plots are resized on re-expand.
-  The collapsed state persists per page in `localStorage`
-  (`dashboard-collapsed-sections:<path>`). The bottom card is not collapsible.
+- Tool pages: every tile (`.card`) in the `Input` / `Output` columns is
+  collapsible — `template.js` turns each `.card-header` into a toggle button
+  with a chevron; collapsing hides that card's `.card-body` only (the section
+  headers and the bottom card stay as they are). Plots inside a re-expanded
+  tile are resized. The collapsed state persists per page in `localStorage`
+  (`dashboard-collapsed-cards:<path>`, one key per tile: section + card id or
+  position, e.g. `input:card-dims,output:2`).
 - Theme toggle logic lives only in `template.js` — one owner per behavior;
   attaching the same listener from multiple scripts breaks the toggle.
 - Tiles: uniform grid of square cards (288px minimum), icon + title +

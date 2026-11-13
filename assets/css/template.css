@@ -335,8 +335,8 @@
   border-bottom-color: #c7c8f0;
 }
 
-/* --- Collapsible input/output columns (toggle injected by template.js) --- */
-.tool-col-toggle {
+/* --- Collapsible tiles (cards) in the input/output columns (toggle injected by template.js) --- */
+.card-toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -347,20 +347,18 @@
   background: none;
   color: inherit;
   font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
   text-align: left;
   cursor: pointer;
   user-select: none;
 }
 
-.tool-col-toggle:focus-visible {
+.card-toggle:focus-visible {
   outline: 3px solid var(--brand);
-  outline-offset: 2px;
+  outline-offset: -3px;
   border-radius: 0.2rem;
 }
 
-[data-bs-theme="dark"] .tool-col-toggle:focus-visible {
+[data-bs-theme="dark"] .card-toggle:focus-visible {
   outline-color: #c7c8f0;
 }
 
@@ -374,24 +372,10 @@
   transition: transform 0.2s ease;
 }
 
-.tool-col.section-collapsed .col-chevron {
+.card.card-collapsed .col-chevron {
   transform: rotate(-45deg);
 }
 
-.tool-col.section-collapsed > :not(.tool-col-header) {
+.card.card-collapsed > .card-body {
   display: none !important;
-}
-
-@media (min-width: 992px) {
-  .tool-layout:has(> .tool-col-input.section-collapsed) {
-    grid-template-columns: auto 1fr;
-  }
-
-  .tool-layout:has(> .tool-col-output.section-collapsed) {
-    grid-template-columns: 1fr auto;
-  }
-
-  .tool-layout:has(> .tool-col-input.section-collapsed):has(> .tool-col-output.section-collapsed) {
-    grid-template-columns: auto auto;
-  }
 }
