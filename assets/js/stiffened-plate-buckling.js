@@ -217,21 +217,22 @@
     const twWeb = inp.profile === 'flat' ? twRed : tw;
     parts.push({ A: hw * twWeb, z: hw / 2, Iown: twWeb * Math.pow(hw, 3) / 12 });
     if (inp.profile !== 'flat') {
-      const zf = inp.profile === 'T' ? hw + tf / 2 : hw - tf / 2;
+      // Equivalent angle of a bulb: flange on top of the reduced web (h_w + t_f = h'_w), DNV-RU-SHIP Pt.3 Ch.3 Sec.7 [1.4.1] Figure 16
+      const zf = (inp.profile === 'T' || inp.profile === 'bulb') ? hw + tf / 2 : hw - tf / 2;
       parts.push({ A: bf * tf, z: zf, Iown: tf * Math.pow(bf, 3) / 12 });
     }
     const Atot = parts.reduce((t, p) => t + p.A, 0);
     const zNA = parts.reduce((t, p) => t + p.A * p.z, 0) / Atot;
     const Imm = parts.reduce((t, p) => t + p.Iown + p.A * Math.pow(p.z - zNA, 2), 0);
     const Icm4 = Imm / 1e4;
-    const zTop = inp.profile === 'T' ? hw + tf : hw;
+    const zTop = (inp.profile === 'T' || inp.profile === 'bulb') ? hw + tf : hw;
     const Z_SI = Imm / (zTop - zNA) / 1e3;   // cm^3, at flange top
     const Z_PI = Imm / (zNA + tp) / 1e3;     // cm^3, at attached plating
     const wna = zNA + tp / 2;                // mm
     const As = parts.slice(1).reduce((t, p) => t + p.A, 0);
     const Ap = s * tp;
 
-    const ef = inp.profile === 'flat' ? hw : (inp.profile === 'bulb' ? hw - 0.5 * tf : hw + 0.5 * tf);
+    const ef = inp.profile === 'flat' ? hw : hw + 0.5 * tf;
     let yw = tw / 2;
     if (inp.profile === 'T') yw = bf / 2;
     else if (inp.profile === 'angle' || inp.profile === 'bulb') yw = bf - (hw * tw * tw + tf * bf * bf) / (2 * As);
@@ -520,18 +521,18 @@
   function stiffenerOnlyProps(profile, hw, tw, bf, tf) {
     const parts = [{ A: hw * tw, z: hw / 2, Iown: tw * Math.pow(hw, 3) / 12 }];
     if (profile !== 'flat') {
-      const zf = profile === 'T' ? hw + tf / 2 : hw - tf / 2;
+      const zf = (profile === 'T' || profile === 'bulb') ? hw + tf / 2 : hw - tf / 2;
       parts.push({ A: bf * tf, z: zf, Iown: tf * Math.pow(bf, 3) / 12 });
     }
     const A = parts.reduce((t2, p) => t2 + p.A, 0);
     const z = parts.reduce((t2, p) => t2 + p.A * p.z, 0) / A;
     const Imm = parts.reduce((t2, p) => t2 + p.Iown + p.A * Math.pow(p.z - z, 2), 0);
-    const zTop = profile === 'T' ? hw + tf : hw;
-    const ef = profile === 'flat' ? hw : (profile === 'bulb' ? hw - 0.5 * tf : hw + 0.5 * tf);
+    const zTop = (profile === 'T' || profile === 'bulb') ? hw + tf : hw;
+    const ef = profile === 'flat' ? hw : hw + 0.5 * tf;
     let yw = tw / 2;
     if (profile === 'T') yw = bf / 2;
     else if (profile === 'angle' || profile === 'bulb') yw = bf - (hw * tw * tw + tf * bf * bf) / (2 * A);
-    return { A, z, Icm4: Imm / 1e4, Ztop: Imm / (zTop - z) / 1e3, ef, yw };
+    return { A, z, Icm4: Imm / 1e4, Ztop: Imm / (zTop - z) / 1e3, Zplate: Imm / z / 1e3, ef, yw };
   }
 
   function setScantlings(v) {
@@ -583,6 +584,7 @@
     propRow(els.equivPropsBody, 'Centroid from plate', Number(sp.z.toPrecision(4)), 'mm');
     propRow(els.equivPropsBody, 'Moment of inertia I', sp.Icm4 * 1e4, 'mm\u2074');
     propRow(els.equivPropsBody, 'Section modulus Z (flange top)', sp.Ztop * 1e3, 'mm\u00B3');
+    propRow(els.equivPropsBody, 'Section modulus Z (plate side)', sp.Zplate * 1e3, 'mm\u00B3');
     propRow(els.equivPropsBody, 'e\u1DA0 (CG-128 symbols)', Number(sp.ef.toPrecision(4)), 'mm');
     return eq;
   }
@@ -603,6 +605,7 @@
     propRow(els.sectionPropsBody, 'Centroid from plate', Number(sp.z.toPrecision(4)), 'mm');
     propRow(els.sectionPropsBody, 'Moment of inertia I', sp.Icm4 * 1e4, 'mm\u2074');
     propRow(els.sectionPropsBody, 'Section modulus Z (flange top)', sp.Ztop * 1e3, 'mm\u00B3');
+    propRow(els.sectionPropsBody, 'Section modulus Z (plate side)', sp.Zplate * 1e3, 'mm\u00B3');
     propRow(els.sectionPropsBody, 'e\u1DA0', Number(sp.ef.toPrecision(4)), 'mm');
     propRow(els.sectionPropsBody, 'y\u2098', Number(sp.yw.toPrecision(4)), 'mm');
   }
