@@ -39,7 +39,6 @@
     outEta: $('out-eta'), outMode: $('out-mode'), outGc: $('out-gc'),
     outSxlim: $('out-sx-lim'), outSylim: $('out-sy-lim'), outTaulim: $('out-tau-lim'),
     outWarn: $('out-warn'),
-    plot: $('out-plot'),
     utilBody: $('out-util-table').querySelector('tbody'),
     detBody: $('out-detail-table').querySelector('tbody')
   };
@@ -397,10 +396,10 @@
     };
   }
 
-  function pair(slider, num, onInput, onChange) {
-    slider.addEventListener('input', () => { num.value = slider.value; onInput(); });
+  function pair(slider, num, onChange) {
+    slider.addEventListener('input', () => { num.value = slider.value; onChange(); });
     slider.addEventListener('change', onChange);
-    num.addEventListener('input', () => { slider.value = num.value; onInput(); });
+    num.addEventListener('input', () => { slider.value = num.value; onChange(); });
     num.addEventListener('change', onChange);
   }
 
@@ -414,7 +413,7 @@
     tr.append(td1, td2, td3); body.appendChild(tr);
   }
 
-  function render(r, inp, withPlot) {
+  function render(r, inp) {
     const ok = r.eta <= inp.etaAll;
     els.outEta.textContent = Number.isFinite(r.eta) ? Number(r.eta.toPrecision(4)) : '\u221E';
     els.outGc.textContent = Number.isFinite(r.gcGov) && r.gcGov > 0 ? Number(r.gcGov.toPrecision(4)) : '\u2014';
@@ -476,21 +475,9 @@
     row(B, '\u03C3_a (effective axial stress)', fmt(r.sigmaA, 'N/mm\u00B2'), 'N/mm\u00B2');
     row(B, 'M_1 (SI) / M_1 (PI)', fmt(r.M1SI, 'N\u00B7mm') + ' / ' + fmt(r.M1PI, 'N\u00B7mm'), 'N\u00B7mm');
 
-    if (!withPlot) return;
-    const names = r.modes.map((m) => m.key);
-    const etas = r.modes.map((m) => Number.isFinite(m.eta) ? m.eta : 0);
-    Plotly.react(els.plot, [
-      { type: 'bar', x: names, y: etas, marker: { color: etas.map((v) => v > inp.etaAll ? '#dc3545' : '#272974') }, name: '\u03B7' },
-      { type: 'scatter', mode: 'lines+markers', x: names, y: names.map(() => inp.etaAll), line: { color: '#dc3545', dash: 'dash' }, name: '\u03B7 allowable' }
-    ], {
-      margin: { t: 30, r: 20, b: 70, l: 50 },
-      yaxis: { title: 'Utilization \u03B7 (\u2013)', rangemode: 'tozero' },
-      xaxis: { tickangle: -20 },
-      showlegend: true, legend: { orientation: 'h' }
-    }, { displayModeBar: true, responsive: true });
   }
 
-  function update(withPlot) {
+  function update() {
     const inp = readInputs();
     const missing = ['s', 'l', 'tp', 'hw', 'tw', 'rehp', 'rehs', 'sx', 'sy', 'tau'].some((k) => !Number.isFinite(inp[k]));
     if (missing) return;
@@ -498,19 +485,18 @@
     let res;
     try { res = calculate(inp); } catch (e) { return; }
     if (inp.profile !== 'bulb') renderSectionProps(inp);
-    render(res, inp, withPlot);
+    render(res, inp);
   }
 
-  const updateCheap = () => update(false);
-  const updateFull = () => update(true);
+  const updateFull = () => update();
 
-  pair(els.sliderS, els.numS, updateCheap, updateFull);
-  pair(els.sliderL, els.numL, updateCheap, updateFull);
-  pair(els.sliderTp, els.numTp, updateCheap, updateFull);
-  pair(els.sliderHw, els.numHw, updateCheap, updateFull);
-  pair(els.sliderTw, els.numTw, updateCheap, updateFull);
-  pair(els.sliderBf, els.numBf, updateCheap, updateFull);
-  pair(els.sliderTf, els.numTf, updateCheap, updateFull);
+  pair(els.sliderS, els.numS, updateFull);
+  pair(els.sliderL, els.numL, updateFull);
+  pair(els.sliderTp, els.numTp, updateFull);
+  pair(els.sliderHw, els.numHw, updateFull);
+  pair(els.sliderTw, els.numTw, updateFull);
+  pair(els.sliderBf, els.numBf, updateFull);
+  pair(els.sliderTf, els.numTf, updateFull);
 
   // Equivalent angle idealization of a bulb flat per DNV-RU-SHIP Pt.3 Ch.3
   // Sec.7 [1.4.1] (referenced from CG-128 [3.3.3]).
@@ -630,7 +616,7 @@
   for (const el of [els.numRehP, els.numRehS, els.numSx, els.numSy, els.numTau, els.numP,
     els.numPsix, els.numPsiy, els.pSide, els.method, els.panelType, els.endCond,
     els.sFactor, els.numLtor, els.numEtaAll]) {
-    el.addEventListener('input', updateCheap);
+    el.addEventListener('input', updateFull);
     el.addEventListener('change', updateFull);
   }
   els.lb1Toggle.addEventListener('change', updateFull);

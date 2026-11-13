@@ -6,7 +6,7 @@
   <meta name="description" content="Stiffened panel buckling capacity per DNV-CG-0128 (Dec 2023) closed form method: overall panel, plate EPP and stiffener SI/PI checks with utilization and limit buckling stress. Stresses in N/mm^2, offline.">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <title>Tool: Stiffened Plate Buckling</title>
-  <meta name="last-updated" content="2026-11-13T14:05:00Z">
+  <meta name="last-updated" content="2026-11-13T14:40:00Z">
   <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/css/template.css">
 </head>
@@ -164,11 +164,11 @@
               </div>
               <div class="mb-2">
                 <label class="form-label mb-1" for="num-psix">Edge stress ratio &psi;<sub>x</sub> = &sigma;<sub>2</sub>/&sigma;<sub>1</sub> along x (&ndash;)</label>
-                <input type="number" class="form-control" id="num-psix" min="-2" max="1" step="any" value="1">
+                <input type="number" class="form-control" id="num-psix" min="-2" max="1" step="any" value="-1">
               </div>
               <div class="mb-2">
                 <label class="form-label mb-1" for="num-psiy">Edge stress ratio &psi;<sub>y</sub> transverse (&ndash;)</label>
-                <input type="number" class="form-control" id="num-psiy" min="-2" max="1" step="any" value="1">
+                <input type="number" class="form-control" id="num-psiy" min="-2" max="1" step="any" value="0">
               </div>
               <div class="mb-0">
                 <label class="form-label mb-1" for="in-pside">Lateral pressure applied on</label>
@@ -286,13 +286,6 @@
 
         <div class="card">
           <div class="card-header">Utilization per limit state</div>
-          <div class="card-body">
-            <div id="out-plot" class="plot-box"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">Utilization per limit state (table)</div>
           <div class="card-body table-responsive">
             <table class="table table-sm table-striped mb-0" id="out-util-table">
               <thead>
@@ -355,7 +348,6 @@
   </footer>
 
   <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
-  <script src="../assets/vendor/plotly/plotly-cartesian.min.js"></script>
   <script src="../assets/js/template.js"></script>
   <script src="../assets/js/tools.js"></script>
   <script src="../assets/data/bulb-profiles.js"></script>
