@@ -403,7 +403,13 @@
     num.addEventListener('change', onChange);
   }
 
-  function fmt(v, unit, d = 4) { return SI.format(v, unit, d); }
+  // mm-based formatting: scientific notation for values larger than 999.9
+  function fmtV(v, d = 4) {
+    if (!Number.isFinite(v)) return '\u2014';
+    if (Math.abs(v) > 999.9) return v.toExponential(3);
+    return Number(v.toPrecision(d));
+  }
+  function fmt(v, unit, d = 4) { return fmtV(v, d) + ' ' + (unit || ''); }
 
   function row(body, name, value, unit) {
     const tr = document.createElement('tr');
@@ -462,10 +468,11 @@
     row(B, 't_w,red (flat bar)', fmt(r.twRed, 'mm'), 'mm');
     row(B, 'A_s / A_p', fmt(r.As, 'mm\u00B2') + ' / ' + fmt(r.Ap, 'mm\u00B2'), 'mm\u00B2');
     row(B, 'Neutral axis from plate surface', fmt(r.zNA, 'mm'), 'mm');
-    row(B, 'I (with effective plate)', fmt(r.Icm4, 'cm\u2074'), 'cm\u2074');
-    row(B, 'Z (SI, flange top) / Z (PI, plate)', fmt(r.Z_SI, 'cm\u00B3') + ' / ' + fmt(r.Z_PI, 'cm\u00B3'), 'cm\u00B3');
+    row(B, 'I (with effective plate)', fmt(r.Icm4 * 1e4, 'mm\u2074'), 'mm\u2074');
+    row(B, 'Z (SI, flange top) / Z (PI, plate)', fmt(r.Z_SI * 1e3, 'mm\u00B3') + ' / ' + fmt(r.Z_PI * 1e3, 'mm\u00B3'), 'mm\u00B3');
     row(B, 'e_f / y_w', fmt(r.ef, 'mm') + ' / ' + fmt(r.yw, 'mm'), 'mm');
-    row(B, 'I_P / I_T / I_\u03C9', fmt(r.IP, 'cm\u2074') + ' / ' + fmt(r.IT, 'cm\u2074') + ' / ' + fmt(r.Iom, 'cm\u2076'), '');
+    row(B, 'I_P / I_T', fmt(r.IP * 1e4, 'mm\u2074') + ' / ' + fmt(r.IT * 1e4, 'mm\u2074'), 'mm\u2074');
+    row(B, 'I_\u03C9', fmt(r.Iom * 1e6, 'mm\u2076'), 'mm\u2076');
     row(B, '\u03C3_x,av', fmt(r.sxAv, 'N/mm\u00B2'), 'N/mm\u00B2');
     row(B, 'D_11 / D_22', fmt(r.D11, 'N\u00B7mm') + ' / ' + fmt(r.D22, 'N\u00B7mm'), 'N\u00B7mm');
     row(B, '\u03B3_GEB,bi / \u03B3_GEB,\u03C4 / \u03B3_GEB',
@@ -552,7 +559,7 @@
   function propRow(body, name, value, unit) {
     const tr = document.createElement('tr');
     const td1 = document.createElement('td'); td1.textContent = name;
-    const td2 = document.createElement('td'); td2.textContent = value;
+    const td2 = document.createElement('td'); td2.textContent = typeof value === 'number' ? fmtV(value) : value;
     const td3 = document.createElement('td'); td3.textContent = unit || '';
     tr.append(td1, td2, td3); body.appendChild(tr);
   }
@@ -562,10 +569,10 @@
     els.bulbPropsBody.innerHTML = '';
     propRow(els.bulbPropsBody, 'Height h\u2032\u2098', Number(p.h), 'mm');
     propRow(els.bulbPropsBody, 'Web thickness t\u2032\u2098', Number(p.t), 'mm');
-    propRow(els.bulbPropsBody, 'Section area', Number(p.a), 'cm\u00B2');
-    propRow(els.bulbPropsBody, 'Centroid from web back', Number(p.dx), 'cm');
-    propRow(els.bulbPropsBody, 'Moment of inertia I\u2093', Number(p.ix), 'cm\u2074');
-    propRow(els.bulbPropsBody, 'Section modulus W\u2093', Number(p.wx), 'cm\u00B3');
+    propRow(els.bulbPropsBody, 'Section area', p.a * 100, 'mm\u00B2');
+    propRow(els.bulbPropsBody, 'Centroid from web back', p.dx * 10, 'mm');
+    propRow(els.bulbPropsBody, 'Moment of inertia I\u2093', p.ix * 1e4, 'mm\u2074');
+    propRow(els.bulbPropsBody, 'Section modulus W\u2093', p.wx * 1e3, 'mm\u00B3');
     els.equivPropsBody.innerHTML = '';
     propRow(els.equivPropsBody, 'Web height h\u2098', eq.hw, 'mm');
     propRow(els.equivPropsBody, 'Web thickness t\u2098', eq.tw, 'mm');
@@ -574,8 +581,8 @@
     const sp = stiffenerOnlyProps('angle', eq.hw, eq.tw, eq.bf, eq.tf);
     propRow(els.equivPropsBody, 'Section area A\u209B', Number(sp.A.toPrecision(4)), 'mm\u00B2');
     propRow(els.equivPropsBody, 'Centroid from plate', Number(sp.z.toPrecision(4)), 'mm');
-    propRow(els.equivPropsBody, 'Moment of inertia I', Number(sp.Icm4.toPrecision(4)), 'cm\u2074');
-    propRow(els.equivPropsBody, 'Section modulus Z (flange top)', Number(sp.Ztop.toPrecision(4)), 'cm\u00B3');
+    propRow(els.equivPropsBody, 'Moment of inertia I', sp.Icm4 * 1e4, 'mm\u2074');
+    propRow(els.equivPropsBody, 'Section modulus Z (flange top)', sp.Ztop * 1e3, 'mm\u00B3');
     propRow(els.equivPropsBody, 'e\u1DA0 (CG-128 symbols)', Number(sp.ef.toPrecision(4)), 'mm');
     return eq;
   }
@@ -594,8 +601,8 @@
     els.sectionPropsBody.innerHTML = '';
     propRow(els.sectionPropsBody, 'Section area A\u209B', Number(sp.A.toPrecision(4)), 'mm\u00B2');
     propRow(els.sectionPropsBody, 'Centroid from plate', Number(sp.z.toPrecision(4)), 'mm');
-    propRow(els.sectionPropsBody, 'Moment of inertia I', Number(sp.Icm4.toPrecision(4)), 'cm\u2074');
-    propRow(els.sectionPropsBody, 'Section modulus Z (flange top)', Number(sp.Ztop.toPrecision(4)), 'cm\u00B3');
+    propRow(els.sectionPropsBody, 'Moment of inertia I', sp.Icm4 * 1e4, 'mm\u2074');
+    propRow(els.sectionPropsBody, 'Section modulus Z (flange top)', sp.Ztop * 1e3, 'mm\u00B3');
     propRow(els.sectionPropsBody, 'e\u1DA0', Number(sp.ef.toPrecision(4)), 'mm');
     propRow(els.sectionPropsBody, 'y\u2098', Number(sp.yw.toPrecision(4)), 'mm');
   }
