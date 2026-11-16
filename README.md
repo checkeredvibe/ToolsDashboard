@@ -56,7 +56,7 @@ All results use SI units. No external network resources are used — open
   used and their sources.
 - `assets/img/` — self-hosted images (navbar logo).
 - `assets/img/tool-icons/` — one SVG tool symbol per tile
-  (`tool-<id>.svg`, 96×96 viewBox displayed at 64px): brand `#272974` +
+  (`tool-<id>.svg`, 96×96 viewBox displayed at 96px): brand `#272974` +
   naval grey `#708090` + white cut-out details, one design readable in both
   light and dark themes.
 - `assets/data/example.csv` — placeholder CSV auto-loaded by the template's
