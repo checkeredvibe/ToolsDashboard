@@ -55,6 +55,10 @@ All results use SI units. No external network resources are used — open
   plots, tables) on the right, and a full-width bottom row with the formulas
   used and their sources.
 - `assets/img/` — self-hosted images (navbar logo).
+- `assets/img/tool-icons/` — one SVG tool symbol per tile
+  (`tool-<id>.svg`, 96×96 viewBox displayed at 96px): brand `#272974` +
+  naval grey `#708090` + white cut-out details, one design readable in both
+  light and dark themes.
 - `assets/data/example.csv` — placeholder CSV auto-loaded by the template's
   CSV preview card (projectile trajectory sample data, SI units).
 - `assets/data/bulb-profiles.js` — predefined bulb flats HP 60x4–HP 430x20
@@ -101,8 +105,9 @@ All results use SI units. No external network resources are used — open
   position, e.g. `input:card-dims,output:2`).
 - Theme toggle logic lives only in `template.js` — one owner per behavior;
   attaching the same listener from multiple scripts breaks the toggle.
-- Tiles: uniform grid of square cards (288px minimum), icon + title +
-  one-line description + small keywords. No featured/pinning.
+- Tiles: uniform grid of square cards (288px minimum), SVG tool symbol
+  centered at the top + title + one-line description + small keywords. No
+  featured/pinning.
 - Tile `data-keywords` feed the live search filter — keep them matching the
   terms a user would actually type (at least five keywords per tool).
 - Tile `data-category` drives the category filter chips; `data-updated`
@@ -159,8 +164,10 @@ All results use SI units. No external network resources are used — open
 7. Copy `assets/js/template-tool.js` to `assets/js/<tool-name>.js` and replace
    the demo model with your calculations.
 8. Add a tile to `index.html` (same markup as the existing tiles) linking to
-   `tools/<tool-name>.html`, including descriptive `data-keywords` (at least
-   five), a `data-category`, and a `data-updated` date.
+   `tools/<tool-name>.html`, including an SVG symbol in
+   `assets/img/tool-icons/tool-<id>.svg` (same 96×96 style as the existing
+   icons), descriptive `data-keywords` (at least five), a `data-category`,
+   and a `data-updated` date.
 9. Test offline by opening `index.html` directly in a browser.
 
 ## Validation checklist before finishing a tool
