@@ -130,6 +130,29 @@
     return 0.5 * (lo + hi);
   }
 
+  // Smallest gamma in (lo, hi] where fn(gamma) >= 1, for possibly non-monotonic fn.
+  // Scans a geometric grid, then bisects the first bracketing interval. Returns
+  // 0 if fn(lo) >= 1 and null if fn(gamma) < 1 up to hi.
+  function solveGamma(fn, lo, hi) {
+    if (!(hi > lo)) return fn(hi) >= 1 ? hi : null;
+    if (fn(lo) >= 1) return 0;
+    const N = 240;
+    let prev = lo;
+    for (let i = 1; i <= N; i++) {
+      const g = lo * Math.pow(hi / lo, i / N);
+      if (fn(g) >= 1) {
+        let a = prev, b = g;
+        for (let k = 0; k < 60; k++) {
+          const mid = Math.sqrt(a * b);
+          if (fn(mid) >= 1) b = mid; else a = mid;
+        }
+        return Math.sqrt(a * b);
+      }
+      prev = g;
+    }
+    return null;
+  }
+
   function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
 
   // ---------- main calculation ----------
@@ -138,7 +161,7 @@
     const warn = [];
     const s = inp.s, ell = inp.l, tp = inp.tp;
     const a = Math.max(ell, s), b = Math.min(ell, s);
-    if (s > ell) warn.push('Stiffener spacing s exceeds stiffener span l; plate cases assume stress along the longer edge.');
+    if (s > ell) warn.push('s > l: sigma_x acts along the shorter edge of the EPP, so Table 3 case 2 is applied to sigma_x and case 1 to sigma_y (F_long = 1). Stiffener SI/PI checks apply to stiffeners fitted parallel to the long edge of the plate panel (DNV-RU-SHIP Pt.3 Ch.8 Sec.1 [2.1.2]).');
     const alpha = a / b;
     const ReHP = inp.rehp, ReHS = inp.rehs;
 
@@ -149,21 +172,24 @@
     // --- plate (EPP) capacity, [3.2] ---
     const sigmaE = Math.PI * Math.PI * E / (12 * (1 - NU * NU)) * Math.pow(tp / b, 2);
     const cProfile = { flat: 0.10, bulb: 0.30, angle: 0.40, T: 0.30 }[inp.profile];
+    const xAlongLong = ell >= s;
     let Flong = 1;
-    if (fixedEnds && inp.profile !== 'flat') Flong = cProfile + 1;
-    else if (fixedEnds && inp.profile === 'flat') {
-      Flong = inp.tw / tp > 1 ? cProfile + 1 : cProfile * Math.pow(inp.tw / tp, 3) + 1;
+    if (xAlongLong) {
+      if (fixedEnds && inp.profile !== 'flat') Flong = cProfile + 1;
+      else if (fixedEnds && inp.profile === 'flat') {
+        Flong = inp.tw / tp > 1 ? cProfile + 1 : cProfile * Math.pow(inp.tw / tp, 3) + 1;
+      }
     }
     const Ftran = 1;
     const c1 = inp.panelType === 'SP-B' ? 1 : Math.max(1 - 1 / alpha, 0);
 
-    const Kx = case1Kx(inp.psix, alpha, Flong);
+    const Kx = xAlongLong ? case1Kx(inp.psix, alpha, Flong) : case2Ky(inp.psix, alpha, Ftran);
     const lamX = Math.sqrt(ReHP / (Kx * sigmaE));
-    const Cx = case1Cx(inp.sx, lamX, inp.psix);
+    const Cx = xAlongLong ? case1Cx(inp.sx, lamX, inp.psix) : case2Cy(inp.sx, lamX, inp.psix, Kx, c1);
 
-    const Ky = case2Ky(inp.psiy, alpha, Ftran);
+    const Ky = xAlongLong ? case2Ky(inp.psiy, alpha, Ftran) : case1Kx(inp.psiy, alpha, Flong);
     const lamY = Math.sqrt(ReHP / (Ky * sigmaE));
-    const Cy = case2Cy(inp.sy, lamY, inp.psiy, Ky, c1);
+    const Cy = xAlongLong ? case2Cy(inp.sy, lamY, inp.psiy, Ky, c1) : case1Cx(inp.sy, lamY, inp.psiy);
 
     const Ktau = case15Ktau(alpha);
     const lamTau = Math.sqrt(ReHP / (Ktau * sigmaE));
@@ -177,29 +203,28 @@
     const e0 = bothComp ? 2 / Math.pow(betap, 0.25) : 2.0;
     const S = inp.S;
 
-    let scxEq = scx, scyEq = scy, tauEq = tauc;
-    if (!bothComp) { scxEq = ReHP; scyEq = ReHP; tauEq = ReHP; }
-
     const k23 = 2 / Math.pow(betap, 0.25);
+    const eq1 = bothComp ? { sx: scx, sy: scy, t: tauc } : { sx: ReHP, sy: ReHP, t: ReHP / Math.sqrt(3) };
     const gc1 = (inp.sx <= 0 && inp.sy <= 0 && inp.tau === 0) ? Infinity : bisect((g) => {
-      const rx = g * Math.max(inp.sx, 0) * S / scxEq, ry = g * Math.max(inp.sy, 0) * S / scyEq,
-        rt = g * Math.abs(inp.tau) * S / tauEq;
+      const rx = g * Math.max(inp.sx, 0) * S / eq1.sx, ry = g * Math.max(inp.sy, 0) * S / eq1.sy,
+        rt = g * Math.abs(inp.tau) * S / eq1.t;
       return Math.pow(rx, e0) - B * Math.pow(rx, e0 / 2) * Math.pow(ry, e0 / 2) +
         Math.pow(ry, e0) + Math.pow(rt, e0) - 1;
     }, 1e-9, 1e6);
     let gc2 = Infinity;
     if (inp.sx >= 0 && (inp.sx > 0 || inp.tau > 0))
-      gc2 = 1 / (S * Math.pow(Math.pow(inp.sx / scxEq, k23) + Math.pow(Math.abs(inp.tau) / tauEq, k23), 1 / k23));
+      gc2 = 1 / (S * Math.pow(Math.pow(inp.sx / scx, k23) + Math.pow(Math.abs(inp.tau) / tauc, k23), 1 / k23));
     let gc3 = Infinity;
     if (inp.sy >= 0 && (inp.sy > 0 || inp.tau > 0))
-      gc3 = 1 / (S * Math.pow(Math.pow(inp.sy / scyEq, k23) + Math.pow(Math.abs(inp.tau) / tauEq, k23), 1 / k23));
-    const gc4 = inp.tau > 0 ? tauEq / (Math.abs(inp.tau) * S) : Infinity;
+      gc3 = 1 / (S * Math.pow(Math.pow(inp.sy / scy, k23) + Math.pow(Math.abs(inp.tau) / tauc, k23), 1 / k23));
+    const gc4 = inp.tau > 0 ? tauc / (Math.abs(inp.tau) * S) : Infinity;
     const gcPlate = Math.min(gc1 === null ? Infinity : gc1, gc2, gc3, gc4);
     const etaPlate = gcPlate === Infinity ? 0 : (gcPlate <= 0 ? Infinity : 1 / gcPlate);
 
     // --- effective width of attached plating, [3.3.5] ---
+    const b1 = b, b2 = b;
     let beff1;
-    if (inp.sx > 0) beff1 = Cx * b;
+    if (inp.sx > 0) beff1 = inp.method === 'FE' ? Cx * b : (Cx * b1 + Cx * b2) / 2;
     else beff1 = b;
     const ellEff = fixedEnds ? ell / Math.sqrt(3) : (oneFixed ? 0.75 * ell : ell);
     const ratio = ellEff / s;
@@ -217,22 +242,23 @@
     const twWeb = inp.profile === 'flat' ? twRed : tw;
     parts.push({ A: hw * twWeb, z: hw / 2, Iown: twWeb * Math.pow(hw, 3) / 12 });
     if (inp.profile !== 'flat') {
-      // Equivalent angle of a bulb: flange on top of the reduced web (h_w + t_f = h'_w), DNV-RU-SHIP Pt.3 Ch.3 Sec.7 [1.4.1] Figure 16
-      const zf = (inp.profile === 'T' || inp.profile === 'bulb') ? hw + tf / 2 : hw - tf / 2;
+      // e_f per DNV-CG-0128 Sec.3 [1]: bulb flange at the top of the web (within h_w),
+      // angle and T flange on top of the web.
+      const zf = (inp.profile === 'bulb') ? hw - tf / 2 : hw + tf / 2;
       parts.push({ A: bf * tf, z: zf, Iown: tf * Math.pow(bf, 3) / 12 });
     }
     const Atot = parts.reduce((t, p) => t + p.A, 0);
     const zNA = parts.reduce((t, p) => t + p.A * p.z, 0) / Atot;
     const Imm = parts.reduce((t, p) => t + p.Iown + p.A * Math.pow(p.z - zNA, 2), 0);
     const Icm4 = Imm / 1e4;
-    const zTop = (inp.profile === 'T' || inp.profile === 'bulb') ? hw + tf : hw;
+    const zTop = (inp.profile === 'bulb' || inp.profile === 'flat') ? hw : hw + tf;
     const Z_SI = Imm / (zTop - zNA) / 1e3;   // cm^3, at flange top
     const Z_PI = Imm / (zNA + tp) / 1e3;     // cm^3, at attached plating
     const wna = zNA + tp / 2;                // mm
     const As = parts.slice(1).reduce((t, p) => t + p.A, 0);
     const Ap = s * tp;
 
-    const ef = inp.profile === 'flat' ? hw : hw + 0.5 * tf;
+    const ef = inp.profile === 'flat' ? hw : (inp.profile === 'bulb' ? hw - 0.5 * tf : hw + 0.5 * tf);
     let yw = tw / 2;
     if (inp.profile === 'T') yw = bf / 2;
     else if (inp.profile === 'angle' || inp.profile === 'bulb') yw = bf - (hw * tw * tw + tf * bf * bf) / (2 * As);
@@ -342,12 +368,11 @@
       };
       const lhs = (g) => (g * sigmaA + (M0(g) + M1 + M2(g)) / (1000 * Z) + sw(g)) * S / ReH;
 
-      if (sigmaA <= 0 && lhs(1) <= 0) return { gc: Infinity, eta: 0, detail: { M1, sigmaA } };
+      if (lhs(1) <= 0) return { gc: Infinity, eta: 0, detail: { M1, sigmaA } };
       let hi = 1e6;
       if (gGEB !== Infinity) hi = Math.min(hi, 0.999 * gGEB);
       if (sigmaA > 0 && sigmaET !== Infinity) hi = Math.min(hi, 0.999 * sigmaET / sigmaA);
-      if (lhs(hi) <= 0) return { gc: hi, eta: 1 / hi, capped: true, detail: { M1, sigmaA } };
-      const gc = bisect((g) => lhs(g) - 1, 1e-6, hi);
+      const gc = solveGamma(lhs, 1e-6, hi);
       return { gc: gc === null ? Infinity : gc, eta: gc === null ? 0 : (gc <= 0 ? Infinity : 1 / gc), detail: { M1, sigmaA } };
     }
 
@@ -521,14 +546,14 @@
   function stiffenerOnlyProps(profile, hw, tw, bf, tf) {
     const parts = [{ A: hw * tw, z: hw / 2, Iown: tw * Math.pow(hw, 3) / 12 }];
     if (profile !== 'flat') {
-      const zf = (profile === 'T' || profile === 'bulb') ? hw + tf / 2 : hw - tf / 2;
+      const zf = (profile === 'bulb') ? hw - tf / 2 : hw + tf / 2;
       parts.push({ A: bf * tf, z: zf, Iown: tf * Math.pow(bf, 3) / 12 });
     }
     const A = parts.reduce((t2, p) => t2 + p.A, 0);
     const z = parts.reduce((t2, p) => t2 + p.A * p.z, 0) / A;
     const Imm = parts.reduce((t2, p) => t2 + p.Iown + p.A * Math.pow(p.z - z, 2), 0);
-    const zTop = (profile === 'T' || profile === 'bulb') ? hw + tf : hw;
-    const ef = profile === 'flat' ? hw : hw + 0.5 * tf;
+    const zTop = (profile === 'bulb' || profile === 'flat') ? hw : hw + tf;
+    const ef = profile === 'flat' ? hw : (profile === 'bulb' ? hw - 0.5 * tf : hw + 0.5 * tf);
     let yw = tw / 2;
     if (profile === 'T') yw = bf / 2;
     else if (profile === 'angle' || profile === 'bulb') yw = bf - (hw * tw * tw + tf * bf * bf) / (2 * A);
@@ -579,7 +604,7 @@
     propRow(els.equivPropsBody, 'Web thickness t\u2098', eq.tw, 'mm');
     propRow(els.equivPropsBody, 'Flange breadth b\u1DA0', eq.bf, 'mm');
     propRow(els.equivPropsBody, 'Flange thickness t\u1DA0', eq.tf, 'mm');
-    const sp = stiffenerOnlyProps('angle', eq.hw, eq.tw, eq.bf, eq.tf);
+    const sp = stiffenerOnlyProps('bulb', eq.hw, eq.tw, eq.bf, eq.tf);
     propRow(els.equivPropsBody, 'Section area A\u209B', Number(sp.A.toPrecision(4)), 'mm\u00B2');
     propRow(els.equivPropsBody, 'Centroid from plate', Number(sp.z.toPrecision(4)), 'mm');
     propRow(els.equivPropsBody, 'Moment of inertia I', sp.Icm4 * 1e4, 'mm\u2074');
