@@ -480,33 +480,33 @@
 
     els.detBody.innerHTML = '';
     const B = els.detBody;
-    row(B, 'Aspect ratio a/b', fmt(r.alpha, '\u2013'), '\u2013');
-    row(B, 'Elastic reference stress \u03C3_E', fmt(r.sigmaE, 'N/mm\u00B2'), 'N/mm\u00B2');
-    row(B, 'F_long', fmt(r.Flong, '\u2013'), '\u2013');
-    row(B, 'K_x / \u03BB / C_x', fmt(r.Kx, '\u2013') + ' / ' + fmt(r.lamX, '\u2013') + ' / ' + fmt(r.Cx, '\u2013'), '\u2013');
-    row(B, 'K_y / \u03BB / C_y', fmt(r.Ky, '\u2013') + ' / ' + fmt(r.lamY, '\u2013') + ' / ' + fmt(r.Cy, '\u2013'), '\u2013');
-    row(B, 'K_\u03C4 / \u03BB / C_\u03C4', fmt(r.Ktau, '\u2013') + ' / ' + fmt(r.lamTau, '\u2013') + ' / ' + fmt(r.Ctau, '\u2013'), '\u2013');
-    row(B, '\u03C3_cx\u2032 / \u03C3_cy\u2032 / \u03C4_c\u2032', fmt(r.scx, 'N/mm\u00B2') + ' / ' + fmt(r.scy, 'N/mm\u00B2') + ' / ' + fmt(r.tauc, 'N/mm\u00B2'), 'N/mm\u00B2');
-    row(B, '\u03B2_p / B / e\u2080', fmt(r.betap, '\u2013') + ' / ' + fmt(r.B, '\u2013') + ' / ' + fmt(r.e0, '\u2013'), '\u2013');
-    row(B, '\u03B3_c1 / \u03B3_c2 / \u03B3_c3 / \u03B3_c4 (plate)',
+    row(B, 'a/b \u2013 aspect ratio of the EPP (a = longer side)', fmt(r.alpha, '\u2013'), '\u2013');
+    row(B, '\u03C3_E \u2013 elastic buckling reference stress', fmt(r.sigmaE, 'N/mm\u00B2'), 'N/mm\u00B2');
+    row(B, 'F_long \u2013 correction factor for stiffener restraint on the longer plate edge (Table 2)', fmt(r.Flong, '\u2013'), '\u2013');
+    row(B, 'K_x / \u03BB / C_x \u2013 buckling factor / degree of slenderness / reduction factor for \u03C3_x (Table 3)', fmt(r.Kx, '\u2013') + ' / ' + fmt(r.lamX, '\u2013') + ' / ' + fmt(r.Cx, '\u2013'), '\u2013');
+    row(B, 'K_y / \u03BB / C_y \u2013 buckling factor / degree of slenderness / reduction factor for \u03C3_y (Table 3)', fmt(r.Ky, '\u2013') + ' / ' + fmt(r.lamY, '\u2013') + ' / ' + fmt(r.Cy, '\u2013'), '\u2013');
+    row(B, 'K_\u03C4 / \u03BB / C_\u03C4 \u2013 buckling factor / degree of slenderness / reduction factor for shear \u03C4 (Table 3, case 15)', fmt(r.Ktau, '\u2013') + ' / ' + fmt(r.lamTau, '\u2013') + ' / ' + fmt(r.Ctau, '\u2013'), '\u2013');
+    row(B, '\u03C3_cx\u2032 / \u03C3_cy\u2032 / \u03C4_c\u2032 \u2013 ultimate buckling stresses for \u03C3_x, \u03C3_y and \u03C4', fmt(r.scx, 'N/mm\u00B2') + ' / ' + fmt(r.scy, 'N/mm\u00B2') + ' / ' + fmt(r.tauc, 'N/mm\u00B2'), 'N/mm\u00B2');
+    row(B, '\u03B2_p / B / e\u2080 \u2013 plate slenderness parameter / interaction coefficients B and e\u2080 (Table 1)', fmt(r.betap, '\u2013') + ' / ' + fmt(r.B, '\u2013') + ' / ' + fmt(r.e0, '\u2013'), '\u2013');
+    row(B, '\u03B3_c1 / \u03B3_c2 / \u03B3_c3 / \u03B3_c4 \u2013 plate stress multiplier factors (interaction equations 1\u20134)',
       [r.gc1, r.gc2, r.gc3, r.gc4].map((g) => Number.isFinite(g) ? Number(g.toPrecision(4)) : '\u221E').join(' / '), '\u2013');
-    row(B, 'b_eff1 / b_eff', fmt(r.beff1, 'mm') + ' / ' + fmt(r.beff, 'mm'), 'mm');
-    row(B, 't_w,red (flat bar)', fmt(r.twRed, 'mm'), 'mm');
-    row(B, 'A_s / A_p', fmt(r.As, 'mm\u00B2') + ' / ' + fmt(r.Ap, 'mm\u00B2'), 'mm\u00B2');
-    row(B, 'Neutral axis from plate surface', fmt(r.zNA, 'mm'), 'mm');
-    row(B, 'I (with effective plate)', fmt(r.Icm4 * 1e4, 'mm\u2074'), 'mm\u2074');
-    row(B, 'Z (SI, flange top) / Z (PI, plate)', fmt(r.Z_SI * 1e3, 'mm\u00B3') + ' / ' + fmt(r.Z_PI * 1e3, 'mm\u00B3'), 'mm\u00B3');
-    row(B, 'e_f / y_w', fmt(r.ef, 'mm') + ' / ' + fmt(r.yw, 'mm'), 'mm');
-    row(B, 'I_P / I_T', fmt(r.IP * 1e4, 'mm\u2074') + ' / ' + fmt(r.IT * 1e4, 'mm\u2074'), 'mm\u2074');
-    row(B, 'I_\u03C9', fmt(r.Iom * 1e6, 'mm\u2076'), 'mm\u2076');
-    row(B, '\u03C3_x,av', fmt(r.sxAv, 'N/mm\u00B2'), 'N/mm\u00B2');
-    row(B, 'D_11 / D_22', fmt(r.D11, 'N\u00B7mm') + ' / ' + fmt(r.D22, 'N\u00B7mm'), 'N\u00B7mm');
-    row(B, '\u03B3_GEB,bi / \u03B3_GEB,\u03C4 / \u03B3_GEB',
+    row(B, 'b_eff1 / b_eff \u2013 effective width of attached plating without / with shear-lag effect \u03C7_s\u00B7s ([3.3.5])', fmt(r.beff1, 'mm') + ' / ' + fmt(r.beff, 'mm'), 'mm');
+    row(B, 't_w,red \u2013 reduced web thickness of flat bar stiffener ([3.3.2])', fmt(r.twRed, 'mm'), 'mm');
+    row(B, 'A_s / A_p \u2013 stiffener section area (without plating) / attached plate area of width s', fmt(r.As, 'mm\u00B2') + ' / ' + fmt(r.Ap, 'mm\u00B2'), 'mm\u00B2');
+    row(B, 'z_NA \u2013 neutral axis of stiffener incl. effective plating, from plate surface', fmt(r.zNA, 'mm'), 'mm');
+    row(B, 'I \u2013 moment of inertia incl. effective width of attached plating', fmt(r.Icm4 * 1e4, 'mm\u2074'), 'mm\u2074');
+    row(B, 'Z \u2013 section modulus: SI at flange top / PI at attached plating', fmt(r.Z_SI * 1e3, 'mm\u00B3') + ' / ' + fmt(r.Z_PI * 1e3, 'mm\u00B3'), 'mm\u00B3');
+    row(B, 'e_f \u2013 distance from attached plating to flange centre; y_w \u2013 flange centroid to free flange edge', fmt(r.ef, 'mm') + ' / ' + fmt(r.yw, 'mm'), 'mm');
+    row(B, 'I_P / I_T \u2013 polar / St. Venant moment of inertia for torsional buckling (Table 5)', fmt(r.IP * 1e4, 'mm\u2074') + ' / ' + fmt(r.IT * 1e4, 'mm\u2074'), 'mm\u2074');
+    row(B, 'I_\u03C9 \u2013 sectorial moment of inertia for torsional buckling (Table 5)', fmt(r.Iom * 1e6, 'mm\u2076'), 'mm\u2076');
+    row(B, '\u03C3_x,av \u2013 average axial stress (Poisson-corrected, [3.1.2])', fmt(r.sxAv, 'N/mm\u00B2'), 'N/mm\u00B2');
+    row(B, 'D_11 / D_22 \u2013 bending stiffness coefficients of the stiffened panel (D_11 along stiffener, D_22 across)', fmt(r.D11, 'N\u00B7mm') + ' / ' + fmt(r.D22, 'N\u00B7mm'), 'N\u00B7mm');
+    row(B, '\u03B3_GEB,bi / \u03B3_GEB,\u03C4 / \u03B3_GEB \u2013 stress multiplier factors of global elastic buckling (biaxial / shear / combined), [3.1]',
       [r.gBi, r.gTau, r.gGEB].map((g) => Number.isFinite(g) ? Number(g.toPrecision(4)) : '\u221E').join(' / '), '\u2013');
-    row(B, '\u03BB_G / C_sl', fmt(r.lamG, '\u2013') + ' / ' + fmt(r.Csl, '\u2013'), '\u2013');
-    row(B, '\u03C3_ET (min over m_tor) / m_tor', fmt(r.sigmaET, 'N/mm\u00B2') + ' / ' + r.mTor, '');
-    row(B, '\u03C3_a (effective axial stress)', fmt(r.sigmaA, 'N/mm\u00B2'), 'N/mm\u00B2');
-    row(B, 'M_1 (SI) / M_1 (PI)', fmt(r.M1SI, 'N\u00B7mm') + ' / ' + fmt(r.M1PI, 'N\u00B7mm'), 'N\u00B7mm');
+    row(B, '\u03BB_G / C_sl \u2013 reference degree of global slenderness / deformation reduction factor', fmt(r.lamG, '\u2013') + ' / ' + fmt(r.Csl, '\u2013'), '\u2013');
+    row(B, '\u03C3_ET \u2013 torsional (tripping) reference stress (minimum over half-wave numbers) / m_tor \u2013 governing number of half waves', fmt(r.sigmaET, 'N/mm\u00B2') + ' / ' + r.mTor, '');
+    row(B, '\u03C3_a \u2013 effective axial stress at mid span of the stiffener with attached plating', fmt(r.sigmaA, 'N/mm\u00B2'), 'N/mm\u00B2');
+    row(B, 'M_1 \u2013 bending moment due to lateral pressure (SI mode / PI mode)', fmt(r.M1SI, 'N\u00B7mm') + ' / ' + fmt(r.M1PI, 'N\u00B7mm'), 'N\u00B7mm');
 
   }
 
